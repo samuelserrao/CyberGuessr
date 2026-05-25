@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cyber-dark text-gray-200 transition-colors duration-300 overflow-x-hidden;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Custom Scrollbar for Cyberpunk vibe */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-cyber-darker;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-cyber-primary rounded-full hover:bg-cyber-secondary transition-colors duration-200;
+  }
+}
+
+@layer utilities {
+  .font-cyber {
+    font-family: 'Orbitron', sans-serif;
+  }
+  .font-rajdhani {
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .text-glow-cyan {
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.6), 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+  .text-glow-purple {
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.6), 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  .text-glow-pink {
+    text-shadow: 0 0 10px rgba(236, 72, 153, 0.6), 0 0 20px rgba(236, 72, 153, 0.3);
+  }
+  .border-glow-cyan {
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+    border-color: rgba(6, 182, 212, 0.5);
+  }
+  .border-glow-purple {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+  .border-glow-pink {
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+    border-color: rgba(236, 72, 153, 0.5);
+  }
+  .bg-glass {
+    background: rgba(15, 7, 30, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .bg-glass-light {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .neon-btn-primary {
+    @apply relative overflow-hidden transition-all duration-300 font-cyber font-semibold tracking-wider text-sm px-6 py-3 rounded-md bg-gradient-to-r from-cyber-primary to-cyber-secondary text-white shadow-[0_0_15px_rgba(139,92,246,0.4)] hover:shadow-[0_0_25px_rgba(236,72,153,0.6)] hover:scale-105 active:scale-95;
+  }
+  .neon-btn-secondary {
+    @apply relative overflow-hidden transition-all duration-300 font-cyber font-semibold tracking-wider text-sm px-6 py-3 rounded-md bg-transparent border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/10 shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-95;
+  }
+}
+
+/* Animations & Starry backdrop */
+.space-bg {
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  animation: bgMove 60s linear infinite;
+}
+
+@keyframes bgMove {
+  from { background-position: 0 0, 40px 60px, 130px 270px; }
+  to { background-position: 550px 550px, 390px 410px, 380px 820px; }
+}
+
+/* Draggable location marker style */
+.marker-bounce {
+  animation: bounceMarker 1s infinite alternate;
+}
+
+@keyframes bounceMarker {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-8px) scale(1.05); }
+}
+
+/* Glowing text effects for logo */
+.cyber-logo {
+  font-family: 'Orbitron', sans-serif;
+  background: linear-gradient(to right, #00f2fe 0%, #4facfe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.6));
+}
