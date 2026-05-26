@@ -1,4 +1,4 @@
-// Mock data for CyberGuessr game
+// Mock data for Geo World Guessr game
 
 export const LOCATIONS = [
   {
@@ -160,7 +160,7 @@ export const ACHIEVEMENTS = [
   {
     id: "explorer_1",
     title: "Global Explorer",
-    description: "Play your first game of CyberGuessr",
+    description: "Play your first game of Geo World Guessr",
     icon: "Compass",
     unlocked: true,
     progress: 100

@@ -61,7 +61,7 @@ export default function Landing({ setTab, startGame }) {
           SYSTEM STATUS: ONLINE
         </div>
         <h1 className="font-cyber text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter mb-2 uppercase select-none">
-          CYBER<span className="cyber-logo">GUESSR</span>
+          GEO WORLD <span className="cyber-logo">GUESSR</span>
         </h1>
         <p className="text-gray-400 font-rajdhani text-sm sm:text-base md:text-lg font-bold tracking-[0.25em] max-w-xl mx-auto uppercase">
           Geographical Reconnaissance Protocol

@@ -48,7 +48,7 @@ export default function Navbar({ currentTab, setTab, theme, toggleTheme, userPro
             <Compass className="w-6 h-6 text-cyber-cyan group-hover:text-cyber-secondary transition-colors duration-300" />
           </motion.div>
           <span className="font-cyber text-lg md:text-xl font-bold tracking-wider cyber-logo">
-            CYBER<span className="text-white dark:text-white light:text-cyber-dark">GUESSR</span>
+            GEO WORLD <span className="text-white dark:text-white light:text-cyber-dark">GUESSR</span>
           </span>
         </div>
 

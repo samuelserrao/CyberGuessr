@@ -162,7 +162,7 @@ export default function App() {
 
       {/* Footer System Credits */}
       <footer className="w-full py-4 border-t border-white/5 bg-black/25 text-center text-[10px] font-cyber text-gray-600 tracking-wider">
-        CYBERGUESSR GEOGRAPHIC RECONNAISSANCE ENGINE v0.4.15 // © 2026 DEEPMIND TEAM
+        GEO WORLD GUESSR GEOGRAPHIC RECONNAISSANCE ENGINE v0.4.15 // © 2026 DEEPMIND TEAM
       </footer>
 
       {/* Floating Toast Notification HUD stack */}
