@@ -1,6 +1,8 @@
 import { LEADERBOARD } from './mockData';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3001/api'
+  : '/api';
 
 // Check if backend is available (cached with periodic background polling for zero latency)
 let isBackendAvailable = false;

@@ -404,6 +404,11 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Express API Server listening on port ${PORT}`);
-});
+// Export app for serverless deployments (like Vercel) and listen locally for development
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Express API Server listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;
