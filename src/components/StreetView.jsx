@@ -1,23 +1,43 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Compass as CompassIcon, Eye, Info } from 'lucide-react';
+import { Compass as CompassIcon, Eye, Info, ImageOff, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 export default function StreetView({ location, onClueUsed, cluesUsedCount }) {
   const [showHint, setShowHint] = useState(false);
   const [bearing, setBearing] = useState(180); // POV Heading angle (degrees)
   const [isLoaded, setIsLoaded] = useState(false);
+  const [useImageFallback, setUseImageFallback] = useState(false);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imagePan, setImagePan] = useState({ x: 0, y: 0 });
   
   const containerRef = useRef(null);
   const panoramaRef = useRef(null);
+  const isDragging = useRef(false);
+  const lastMouse = useRef({ x: 0, y: 0 });
 
-  // Reset hint overlay on location change
+  const [imgErrorCount, setImgErrorCount] = useState(0);
+
+  // Reset hint overlay and fallback state on location change
   useEffect(() => {
     setShowHint(false);
+    setImageZoom(1);
+    setImagePan({ x: 0, y: 0 });
+    setImgErrorCount(0);
   }, [location]);
 
-  // Load Google Maps API & Initialize Street View Panorama
+  // Check if we have a valid API key
   useEffect(() => {
     const apiKey = localStorage.getItem('googleApiKey') || '';
+    
+    // If no API key, use image fallback immediately
+    if (!apiKey || apiKey.trim() === '') {
+      setUseImageFallback(true);
+      setIsLoaded(true);
+      return;
+    }
+
+    setUseImageFallback(false);
+    
     const scriptId = 'google-maps-streetview-script';
     let script = document.getElementById(scriptId);
 
@@ -59,6 +79,8 @@ export default function StreetView({ location, onClueUsed, cluesUsedCount }) {
         }
       } catch (err) {
         console.error("Google Street View load error:", err);
+        setUseImageFallback(true);
+        setIsLoaded(true);
       }
     };
 
@@ -69,6 +91,10 @@ export default function StreetView({ location, onClueUsed, cluesUsedCount }) {
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
         script.async = true;
         script.defer = true;
+        script.onerror = () => {
+          setUseImageFallback(true);
+          setIsLoaded(true);
+        };
         document.head.appendChild(script);
       }
       script.onload = () => {
@@ -79,24 +105,75 @@ export default function StreetView({ location, onClueUsed, cluesUsedCount }) {
     }
   }, [location]);
 
+  // Image fallback pan handlers
+  const handleMouseDown = (e) => {
+    if (!useImageFallback) return;
+    isDragging.current = true;
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current || !useImageFallback) return;
+    const dx = e.clientX - lastMouse.current.x;
+    const dy = e.clientY - lastMouse.current.y;
+    setImagePan(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+    lastMouse.current = { x: e.clientX, y: e.clientY };
+    // Update bearing based on horizontal drag
+    setBearing(prev => (prev - dx * 0.5 + 360) % 360);
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/10 bg-black/60 shadow-[0_0_30px_rgba(0,0,0,0.5)] group select-none">
       
-      {/* Google Maps StreetView Div Wrapper */}
-      <div 
-        ref={containerRef} 
-        className="w-full h-full bg-black/40"
-      />
+      {/* Google Maps StreetView OR Image Fallback */}
+      {useImageFallback ? (
+        <div 
+          className="w-full h-full bg-black/40 overflow-hidden cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          {location?.imageUrl && imgErrorCount < 2 ? (
+            <img 
+              src={imgErrorCount === 1 ? "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000" : location.imageUrl}
+              onError={() => setImgErrorCount(prev => prev + 1)}
+              alt={location.name}
+              className="w-full h-full object-cover transition-transform duration-100 select-none"
+              style={{
+                transform: `scale(${imageZoom}) translate(${imagePan.x / imageZoom}px, ${imagePan.y / imageZoom}px)`,
+              }}
+              draggable={false}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-center">
+                <ImageOff className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-500 font-cyber text-xs">NO SATELLITE FEED AVAILABLE</p>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div 
+          ref={containerRef} 
+          className="w-full h-full bg-black/40"
+        />
+      )}
 
       {/* Loading Skeleton */}
       {!isLoaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-cyber-dark/95 z-10">
           <div className="w-12 h-12 rounded-full border-4 border-cyber-cyan border-t-transparent animate-spin mb-4" />
-          <span className="font-cyber text-xs text-cyber-cyan tracking-widest animate-pulse">CONNECTING GOOGLE SATELLITE FEED...</span>
+          <span className="font-cyber text-xs text-cyber-cyan tracking-widest animate-pulse">CONNECTING SATELLITE FEED...</span>
         </div>
       )}
 
-      {/* HUD Scanner Scanlines overlay (pointer-events-none so it doesn't block StreetView interaction) */}
+      {/* HUD Scanner Scanlines overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30 pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.01)_50%,rgba(0,0,0,0.08)_50%)] bg-[size:100%_4px] pointer-events-none" />
 
@@ -107,11 +184,42 @@ export default function StreetView({ location, onClueUsed, cluesUsedCount }) {
         <span>E {Math.round(bearing + 90) % 360}°</span>
       </div>
 
+      {/* Image mode indicator */}
+      {useImageFallback && (
+        <div className="absolute top-4 right-4 font-cyber text-[9px] text-cyber-secondary bg-black/75 border border-cyber-secondary/30 px-3 py-1.5 rounded-lg backdrop-blur-md pointer-events-none z-10">
+          SATELLITE IMAGE MODE
+        </div>
+      )}
+
+      {/* Zoom controls for image fallback */}
+      {useImageFallback && (
+        <div className="absolute top-16 right-4 flex flex-col gap-1.5 z-10">
+          <button
+            onClick={() => setImageZoom(prev => Math.min(3, prev + 0.3))}
+            className="p-2 rounded-lg bg-black/75 border border-white/20 hover:border-cyber-cyan/50 text-gray-400 hover:text-white transition-all duration-200"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => { setImageZoom(1); setImagePan({ x: 0, y: 0 }); }}
+            className="p-2 rounded-lg bg-black/75 border border-white/20 hover:border-cyber-cyan/50 text-gray-400 hover:text-white transition-all duration-200"
+          >
+            <RotateCw className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setImageZoom(prev => Math.max(0.5, prev - 0.3))}
+            className="p-2 rounded-lg bg-black/75 border border-white/20 hover:border-cyber-cyan/50 text-gray-400 hover:text-white transition-all duration-200"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Bottom Left GPS HUD */}
       <div className="absolute bottom-4 left-4 font-cyber text-[10px] text-cyber-cyan bg-black/75 border border-cyber-cyan/30 p-2.5 rounded-lg backdrop-blur-md flex flex-col gap-1 pointer-events-none z-10">
         <div className="flex items-center gap-1.5 text-white">
           <span className="w-1.5 h-1.5 bg-cyber-neonGreen rounded-full animate-ping" />
-          <span>SYS: GOOGLE API CONNECTED</span>
+          <span>SYS: {useImageFallback ? 'IMAGE FEED ACTIVE' : 'GOOGLE API CONNECTED'}</span>
         </div>
         <div className="text-[9px] text-gray-400 font-mono">
           POV BEARING: {bearing}°

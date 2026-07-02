@@ -3,143 +3,283 @@
 export const LOCATIONS = [
   {
     id: 1,
-    name: "Kyoto Traditional Street",
-    country: "Japan",
-    lat: 35.0116,
-    lng: 135.7681,
-    imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "Look at the wooden Machiya townhouses and stone-paved streets.",
-      "A famous wooden pagoda (Yasaka Pagoda) stands in this district.",
-      "The country is known for its Shinto shrines and cherry blossoms."
-    ],
-    description: "This is Gion, Kyoto's famous geisha district. It is filled with traditional wooden machiya merchant houses, teahouses, and historic temples dating back to the 16th century."
-  },
-  {
-    id: 2,
-    name: "Giza Plateau & Great Pyramids",
+    name: "Giza Pyramid Complex",
     country: "Egypt",
     lat: 29.9792,
     lng: 31.1342,
-    imageUrl: "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?q=80&w=2000&auto=format&fit=crop",
+    imageUrl: "https://images.unsplash.com/photo-1503177119275-0aa32b31d458?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "The climate is arid, and large sandy dunes lie in the distance.",
-      "These monumental structures are the last standing Ancient Wonders of the World.",
-      "It is located just outside Cairo."
+      "Located in the Sahara Desert, this region sits in North Africa.",
+      "The country's capital is Cairo, and the official language is Arabic.",
+      "This complex includes the Great Sphinx and three major pyramids built during the Old Kingdom."
     ],
-    description: "The Great Pyramid of Giza is the oldest and largest of the pyramids in the Giza pyramid complex, built for the Fourth Dynasty Pharaoh Khufu over 4,500 years ago."
+    description: "The Giza Pyramid Complex includes the Great Pyramid of Giza, the Pyramid of Khafre, and the Pyramid of Menkaure, along with their associated pyramid complexes and the Great Sphinx of Giza. All were built during the Fourth Dynasty of the Old Kingdom of Ancient Egypt."
+  },
+  {
+    id: 2,
+    name: "The Colosseum",
+    country: "Italy",
+    lat: 41.8902,
+    lng: 12.4922,
+    imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located in Southern Europe, in the capital city of this boot-shaped peninsula.",
+      "Built of travertine, tuff, and brick-faced concrete under the Flavian dynasty.",
+      "It is the largest ancient amphitheatre ever built, famous for gladiatorial contests."
+    ],
+    description: "The Colosseum is an oval amphitheatre in the centre of the city of Rome, Italy, just east of the Roman Forum. It is the largest ancient amphitheatre ever built, and is still the largest standing amphitheatre in the world today, constructed under Emperor Vespasian."
   },
   {
     id: 3,
-    name: "Eiffel Tower Champ de Mars",
-    country: "France",
-    lat: 48.8584,
-    lng: 2.2945,
-    imageUrl: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "The architectural language is classic European Haussmann design.",
-      "The street signage is in French.",
-      "Look straight up; a giant 324-meter iron lattice tower dominates the sky."
-    ],
-    description: "The Eiffel Tower was constructed from 1887 to 1889 as the centerpiece of the 1889 World's Fair. It is the most-visited paid monument in the world."
-  },
-  {
-    id: 4,
-    name: "Sydney Harbour",
-    country: "Australia",
-    lat: -33.8568,
-    lng: 151.2153,
-    imageUrl: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "You are in the Southern Hemisphere.",
-      "A white, sail-like vaulted roof structures the coastline.",
-      "The massive steel arch bridge nearby is nicknamed 'The Coathanger'."
-    ],
-    description: "Sydney Harbour is home to the Sydney Opera House and the Sydney Harbour Bridge. The opera house, designed by Danish architect Jørn Utzon, was opened in 1973."
-  },
-  {
-    id: 5,
-    name: "Times Square, New York City",
-    country: "United States",
-    lat: 40.7580,
-    lng: -73.9855,
-    imageUrl: "https://images.unsplash.com/photo-1534430480872-3498386e7856?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "Yellow cabs are zipping through the grid-like avenues.",
-      "Gigantic neon and LED billboards illuminate the skyscrapers 24/7.",
-      "This major commercial intersection is known as the Crossroads of the World."
-    ],
-    description: "Times Square is a major commercial intersection, tourist destination, entertainment center, and neighborhood in Midtown Manhattan, New York City."
-  },
-  {
-    id: 6,
-    name: "Rio de Janeiro Beachfront",
-    country: "Brazil",
-    lat: -22.9714,
-    lng: -43.1825,
-    imageUrl: "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "Portuguese text is written on the beachside stalls.",
-      "Steep granite monoliths (like Sugarloaf Mountain) rise straight from the sea.",
-      "A famous mosaic-tiled promenade borders this long crescent beach."
-    ],
-    description: "Copacabana is a world-famous beach neighborhood located in the South Zone of Rio de Janeiro, known for its 4 km balneario beach and wave-patterned mosaic promenade."
-  },
-  {
-    id: 7,
-    name: "Reykjavik Cathedral Overlook",
-    country: "Iceland",
-    lat: 64.1420,
-    lng: -21.9271,
-    imageUrl: "https://images.unsplash.com/photo-1504829857797-ddff28127792?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "Colorful metal-clad roofs are spread out beneath a sub-arctic sky.",
-      "The massive Hallgrímskirkja church is shaped like basalt lava columns.",
-      "It is the northernmost capital of a sovereign state."
-    ],
-    description: "Reykjavik is the capital and largest city of Iceland. Hallgrímskirkja is a Lutheran parish church, standing at 74.5 meters high, making it one of the tallest structures in the country."
-  },
-  {
-    id: 8,
-    name: "Venice Canal",
-    country: "Italy",
-    lat: 45.4408,
-    lng: 12.3155,
-    imageUrl: "https://images.unsplash.com/photo-1527631746610-bca00a040d60?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "There are absolutely no cars, roads, or trucks in sight.",
-      "Transportation consists of water buses (vaporetto) and long black boats.",
-      "The buildings stand on thousands of wooden piles driven into the mud."
-    ],
-    description: "Venice is built on a group of 118 small islands separated by canals and linked by over 400 bridges. It is renowned for the beauty of its setting, architecture, and artworks."
-  },
-  {
-    id: 9,
-    name: "Grand Canyon National Park",
-    country: "United States",
-    lat: 36.0544,
-    lng: -112.1401,
-    imageUrl: "https://images.unsplash.com/photo-1615551043360-33de8b5f410c?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "Red rock strata layers carve out a colossal valley.",
-      "The Colorado River flows far down at the bottom of the gorge.",
-      "This is one of the most famous canyons in North America."
-    ],
-    description: "The Grand Canyon is a steep-sided canyon carved by the Colorado River in Arizona. It is 446 km long, up to 29 km wide, and attains a depth of over a mile (1,857 meters)."
-  },
-  {
-    id: 10,
-    name: "Taj Mahal Gardens",
+    name: "Taj Mahal",
     country: "India",
     lat: 27.1751,
     lng: 78.0421,
     imageUrl: "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "A massive white marble mausoleum with four identical minarets sits by a river.",
-      "It represents Mughal architecture, blending Persian, Islamic, and Indian styles.",
-      "It was built by Shah Jahan in memory of his favorite wife."
+      "Located in South Asia, along the banks of the Yamuna River.",
+      "An ivory-white marble mausoleum commissioned in 1632 by the Mughal emperor Shah Jahan.",
+      "It was built to house the tomb of the emperor's favorite wife, Mumtaz Mahal."
     ],
-    description: "The Taj Mahal is an ivory-white marble mausoleum on the south bank of the Yamuna river in Agra. It was commissioned in 1632 by the Mughal emperor Shah Jahan."
+    description: "The Taj Mahal is an ivory-white marble mausoleum on the southern bank of the Yamuna river in the Indian city of Agra. It was commissioned in 1632 by the Mughal emperor Shah Jahan to house the tomb of his favorite wife, Mumtaz Mahal."
+  },
+  {
+    id: 4,
+    name: "The Treasury at Petra",
+    country: "Jordan",
+    lat: 30.3285,
+    lng: 35.4444,
+    imageUrl: "https://images.unsplash.com/photo-1501232060322-aa873e6ca528?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located in the Middle East, carved directly into red sandstone cliffs.",
+      "It served as the capital of the Nabataean Kingdom around the 4th century BC.",
+      "Known as the 'Rose City' due to the color of the stone from which it is carved."
+    ],
+    description: "Petra is a famous archaeological site in Jordan's southwestern desert. Dating to around 300 B.C., it was the capital of the Nabataean Kingdom. Carved directly into vibrant red, white, and pink sandstone cliff faces, it is one of the New Seven Wonders of the World."
+  },
+  {
+    id: 5,
+    name: "Machu Picchu",
+    country: "Peru",
+    lat: -13.1631,
+    lng: -72.5450,
+    imageUrl: "https://images.unsplash.com/photo-1508873696983-2df519f0397e?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Set high in the Andes Mountains of South America.",
+      "Built in the 15th century and later abandoned, it is renowned for its sophisticated dry-stone walls.",
+      "It was constructed as an estate for the Inca emperor Pachacuti."
+    ],
+    description: "Machu Picchu is a 15th-century Inca citadel located in the Eastern Cordillera of southern Peru, on a 2,430-meter mountain ridge. It was built around 1450, abandoned a century later during the Spanish Conquest, and rediscovered in 1911."
+  },
+  {
+    id: 6,
+    name: "Stonehenge",
+    country: "United Kingdom",
+    lat: 51.1789,
+    lng: -1.8262,
+    imageUrl: "https://images.unsplash.com/photo-1599833975787-5c143f373c30?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located on Salisbury Plain in southwest England.",
+      "A prehistoric monument consisting of an outer ring of vertical sarsen standing stones.",
+      "Architects estimate it was constructed from 3000 BC to 2000 BC."
+    ],
+    description: "Stonehenge is a prehistoric monument on Salisbury Plain in Wiltshire, England, consisting of an outer ring of vertical sarsen standing stones, each around 13 feet high, topped by connecting horizontal lintel stones. It remains one of the world's most famous megalithic circles."
+  },
+  {
+    id: 7,
+    name: "Great Wall of China",
+    country: "China",
+    lat: 40.4319,
+    lng: 116.5704,
+    imageUrl: "https://images.unsplash.com/photo-1508193638397-1c4234db14d8?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A series of fortifications built across the historical northern borders of this East Asian country.",
+      "Constructed to protect against nomadic groups from the Eurasian Steppe.",
+      "Several walls were built as early as the 7th century BC, later joined by the first Emperor Qin Shi Huang."
+    ],
+    description: "The Great Wall of China is a series of fortifications that were built across the historical northern borders of ancient Chinese states and Imperial China as protection against nomadic groups. Stretching over 21,196 km, it is a UNESCO World Heritage site."
+  },
+  {
+    id: 8,
+    name: "Chichen Itza",
+    country: "Mexico",
+    lat: 20.6843,
+    lng: -88.5678,
+    imageUrl: "https://images.unsplash.com/photo-1518638150341-db70061e8021?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located in North America, on the flat limestone peninsula of Yucatan.",
+      "A large pre-Columbian city built by the Maya people of the Terminal Classic period.",
+      "Dominating the center is the step-pyramid temple of Kukulcan (El Castillo)."
+    ],
+    description: "Chichen Itza was a large pre-Columbian city built by the Maya people. The archaeological site is located in Yucatan State, Mexico. The stepped pyramid, El Castillo, serves as a temple to the feathered serpent deity Kukulcan."
+  },
+  {
+    id: 9,
+    name: "Easter Island Moai",
+    country: "Chile",
+    lat: -27.1127,
+    lng: -109.3497,
+    imageUrl: "https://images.unsplash.com/photo-1510018572596-e40e2a19b412?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located on a remote volcanic island in the southeastern Pacific Ocean.",
+      "Monolithic human figures carved by the Rapa Nui people between 1250 and 1500.",
+      "Almost all moai have overly large heads, representing deified ancestors."
+    ],
+    description: "The Moai are monolithic human figures carved by the Rapa Nui people on Easter Island in eastern Polynesia between the years 1250 and 1500. The statues are carved from volcanic tuff, representing the spirits of ancestors."
+  },
+  {
+    id: 10,
+    name: "Acropolis of Athens",
+    country: "Greece",
+    lat: 37.9715,
+    lng: 23.7257,
+    imageUrl: "https://images.unsplash.com/photo-1608155686393-8fdd966d784d?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "An ancient citadel located on a rocky outcrop above the capital city of this Mediterranean country.",
+      "It contains the remains of several ancient buildings of great architectural significance.",
+      "The most famous structure on the site is the Parthenon, dedicated to the goddess Athena."
+    ],
+    description: "The Acropolis of Athens is an ancient citadel located on a rocky outcrop above the city of Athens, Greece. It contains the remains of several ancient buildings of great architectural and historical significance, the Parthenon being the most complete."
+  },
+  {
+    id: 11,
+    name: "Angkor Wat",
+    country: "Cambodia",
+    lat: 13.4125,
+    lng: 103.8670,
+    imageUrl: "https://images.unsplash.com/photo-1600100397608-f010e42ed184?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A temple complex in northwest country, set in Southeast Asia.",
+      "Originally constructed as a Hindu temple dedicated to Vishnu for the Khmer Empire.",
+      "It is the largest religious monument in the world, appearing on the country's national flag."
+    ],
+    description: "Angkor Wat is a temple complex in Cambodia and the largest religious monument in the world by land area, measuring 162.6 hectares. Built by the Khmer King Suryavarman II in the early 12th century, it transformed into a Buddhist site."
+  },
+  {
+    id: 12,
+    name: "Himeji Castle",
+    country: "Japan",
+    lat: 34.8394,
+    lng: 134.6939,
+    imageUrl: "https://images.unsplash.com/photo-1590559899731-a3826dc9fd55?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A hilltop castle complex located in Hyogo Prefecture, East Asia.",
+      "Widely regarded as the finest surviving example of prototypical Japanese castle architecture.",
+      "Often called the 'White Heron Castle' (Shirasagi-jo) because of its white exterior and resemblance to a bird taking flight."
+    ],
+    description: "Himeji Castle is a hilltop Japanese castle complex situated in Himeji in Hyogo Prefecture, Japan. It is regarded as the finest surviving example of early 17th-century Japanese castle architecture, comprising 83 wooden buildings."
+  },
+  {
+    id: 13,
+    name: "Notre-Dame de Paris",
+    country: "France",
+    lat: 48.8530,
+    lng: 2.3499,
+    imageUrl: "https://images.unsplash.com/photo-1478147427282-58a87a120781?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A medieval Catholic cathedral on the Île de la Cité in the French capital.",
+      "One of the most famous examples of French Gothic architecture, built starting in 1163.",
+      "Renowned for its stained glass rose windows, gargoyles, and flying buttresses."
+    ],
+    description: "Notre-Dame de Paris, referred to simply as Notre-Dame, is a medieval Catholic cathedral on the Île de la Cité in the 4th arrondissement of Paris, France. Constructed over two centuries starting in 1163, it represents French Gothic genius."
+  },
+  {
+    id: 14,
+    name: "Alhambra Palace",
+    country: "Spain",
+    lat: 37.1760,
+    lng: -3.5878,
+    imageUrl: "https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A palace and fortress complex located in Granada, Andalusia.",
+      "Originally constructed as a small fortress in AD 889 and rebuilt by the Nasrid dynasty.",
+      "One of the most famous monuments of Islamic architecture, featuring highly decorated stucco walls."
+    ],
+    description: "The Alhambra is a palace and fortress complex located in Granada, Andalusia, Spain. It was constructed during the mid-13th century by the Nasrid emir Mohammed ben Al-Ahmar, representing the peak of Moorish architecture in Europe."
+  },
+  {
+    id: 15,
+    name: "Pompeii Ruins",
+    country: "Italy",
+    lat: 40.7462,
+    lng: 14.4850,
+    imageUrl: "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "An ancient Roman city located in the Campania region, near Naples.",
+      "The city was buried under 4 to 6 meters of volcanic ash during an eruption in AD 79.",
+      "Mount Vesuvius is the volcano that erupted and preserved the city in detail."
+    ],
+    description: "Pompeii was an ancient Roman city near modern Naples in the Campania region of Italy. Pompeii, along with Herculaneum and many villas in the surrounding area, was buried under volcanic ash and pumice in the eruption of Mount Vesuvius in AD 79."
+  },
+  {
+    id: 16,
+    name: "Tikal Temple I",
+    country: "Guatemala",
+    lat: 17.2220,
+    lng: -89.6234,
+    imageUrl: "https://images.unsplash.com/photo-1543872084-c7bd3822856f?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "The ruin of an ancient city in the rainforest of the Peten basin in Central America.",
+      "One of the largest archaeological sites and urban centers of the pre-Columbian Maya civilization.",
+      "Temple I is also known as the Temple of the Great Jaguar, rising 47 meters tall."
+    ],
+    description: "Tikal is the ruin of an ancient city, which was likely called Yax Mutal, found in a rainforest in Guatemala. It is one of the largest archaeological sites of the Maya civilization, dominated by Temple I, built as a funerary monument."
+  },
+  {
+    id: 17,
+    name: "Mausoleum of the Terracotta Army",
+    country: "China",
+    lat: 34.3842,
+    lng: 109.2785,
+    imageUrl: "https://images.unsplash.com/photo-1599889959407-5d8f662935d1?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A collection of clay sculptures depicting the armies of the first Emperor of this country.",
+      "It is a form of funerary art buried with the emperor in 210 BC to protect him in the afterlife.",
+      "It was discovered in 1974 by local farmers in Shaanxi province, near Xi'an."
+    ],
+    description: "The Terracotta Army is a collection of terracotta sculptures depicting the armies of Qin Shi Huang, the first Emperor of China. It is a form of funerary art buried with the emperor in 210–209 BCE to protect him in his afterlife."
+  },
+  {
+    id: 18,
+    name: "Venice Canals",
+    country: "Italy",
+    lat: 45.4408,
+    lng: 12.3155,
+    imageUrl: "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A historical city built on a group of 118 small islands separated by canals.",
+      "It is located in the Venetian Lagoon in northeastern Italy.",
+      "Known for its gondolas, gothic palaces, and Saint Mark's Basilica."
+    ],
+    description: "Venice is a historical city built on 118 small islands in the Venetian Lagoon, northeastern Italy. It has no roads, only canals, including the Grand Canal thoroughfare, lined with Renaissance and Gothic palaces."
+  },
+  {
+    id: 19,
+    name: "Red Square & Kremlin",
+    country: "Russia",
+    lat: 55.7539,
+    lng: 37.6208,
+    imageUrl: "https://images.unsplash.com/photo-1513326796677-4498336113b4?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A massive brick square bordering the official residence of the President of this northern nation.",
+      "The square contains Saint Basil's Cathedral, famous for its colorful onion-shaped domes.",
+      "It separates the Kremlin from the historic merchant quarter of Moscow."
+    ],
+    description: "Red Square is a city square in Moscow, Russia. It separates the Kremlin, the official residence of the President of Russia, from the historic merchant quarter known as Kitai-gorod, featuring St. Basil's Cathedral."
+  },
+  {
+    id: 20,
+    name: "Kyoto Yasaka Pagoda",
+    country: "Japan",
+    lat: 34.9986,
+    lng: 135.7782,
+    imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A 5-story wooden pagoda located in the historic Higashiyama district.",
+      "Built in 1440 by Shogun Ashikaga Yoshinori, it stands 46 meters tall.",
+      "It is the sole survivor of a former temple complex destroyed by fire."
+    ],
+    description: "Yasaka Pagoda, also known as Hokan-ji Temple, is a 46-meter-tall five-story wooden pagoda located in Kyoto, Japan. Built in 1440, it is one of the most iconic historical symbols of traditional Kyoto."
   }
 ];
 
@@ -179,7 +319,7 @@ export const ACHIEVEMENTS = [
     description: "Make a correct guess with more than 45s left on the timer",
     icon: "Zap",
     unlocked: false,
-    progress: 60
+    progress: 0
   },
   {
     id: "multiplayer_win",
@@ -187,7 +327,7 @@ export const ACHIEVEMENTS = [
     description: "Win 10 multiplayer lobby matches",
     icon: "Trophy",
     unlocked: false,
-    progress: 30
+    progress: 0
   },
   {
     id: "all_rounds_perfect",
@@ -195,7 +335,7 @@ export const ACHIEVEMENTS = [
     description: "Score more than 23,000 points in a single campaign game",
     icon: "Award",
     unlocked: false,
-    progress: 10
+    progress: 0
   },
   {
     id: "night_rider",

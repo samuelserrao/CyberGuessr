@@ -27,22 +27,39 @@ export default function MapPanel({
     const svg = svgRef.current;
     if (!svg) return;
 
-    const rect = svg.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    // Use SVG's built-in coordinate transformation matrix
+    // This correctly handles any preserveAspectRatio mode (meet, slice, etc.)
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    const inverseCTM = ctm.inverse();
 
-    // Convert pixel coordinates on screen to SVG viewBox coords (0 to 1000, 0 to 500)
-    const viewBoxX = (clickX / rect.width) * 1000;
-    const viewBoxY = (clickY / rect.height) * 500;
+    // Create an SVGPoint in the screen coordinate space
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
 
-    // Convert SVG coordinates to Lat/Lng
-    // Equirectangular projection mapping:
-    // x = (lng + 180) * (W / 360) => lng = (x * 360 / W) - 180
-    // y = (90 - lat) * (H / 180) => lat = 90 - (y * 180 / H)
-    const lng = (viewBoxX * 360) / 1000 - 180;
-    const lat = 90 - (viewBoxY * 180) / 500;
+    // Transform screen coordinates to SVG viewBox coordinates natively
+    const svgPoint = pt.matrixTransform(inverseCTM);
 
-    setMarker({ x: viewBoxX, y: viewBoxY, lat, lng });
+    // Clamp to viewBox bounds
+    const clampedX = Math.max(0, Math.min(1000, svgPoint.x));
+    const clampedY = Math.max(0, Math.min(500, svgPoint.y));
+
+    // Convert SVG coordinates to Lat/Lng with 18.6° E longitude split calibration
+    let rawLng = (clampedX * 360) / 1000 - 180 + 18.6;
+    if (rawLng > 180) {
+      rawLng -= 360;
+    }
+    const lng = rawLng;
+    const lat = 90 - (clampedY * 180) / 500;
+
+    console.log("Map Click Calibrated Details:", {
+      screen: { x: e.clientX, y: e.clientY },
+      viewBox: { x: clampedX, y: clampedY },
+      computed: { lat, lng }
+    });
+
+    setMarker({ x: clampedX, y: clampedY, lat, lng });
   };
 
   const handleReset = () => {
@@ -56,57 +73,18 @@ export default function MapPanel({
 
   // Convert actual coordinates to SVG x/y for drawing the result line
   const getSvgCoords = (lat, lng) => {
-    const x = ((lng + 180) * 1000) / 360;
+    let l = lng;
+    // Map bounds split at -161.4° longitude: wrap anything west of that to positive space
+    if (l < -161.4) {
+      l += 360;
+    }
+    const x = ((l - 18.6 + 180) * 1000) / 360;
     const y = ((90 - lat) * 500) / 180;
     return { x, y };
   };
 
   const actualCoords = actualLocation ? getSvgCoords(actualLocation.lat, actualLocation.lng) : null;
   const guessCoords = userGuessCoord ? getSvgCoords(userGuessCoord.lat, userGuessCoord.lng) : (marker ? { x: marker.x, y: marker.y } : null);
-
-  // SVG Continent Path Data for stylized Cyberpunk world map
-  const continents = [
-    {
-      name: "North America",
-      points: "M 100 80 L 150 70 L 220 70 L 240 100 L 280 100 L 290 140 L 230 180 L 210 200 L 170 230 L 160 250 L 140 260 L 150 220 L 130 200 L 100 180 L 80 140 Z"
-    },
-    {
-      name: "South America",
-      points: "M 170 260 L 210 280 L 240 310 L 260 340 L 250 380 L 210 440 L 200 460 L 180 400 L 160 340 L 150 300 Z"
-    },
-    {
-      name: "Greenland",
-      points: "M 270 40 L 330 40 L 340 60 L 300 80 L 280 60 Z"
-    },
-    {
-      name: "Eurasia",
-      points: "M 420 80 L 500 70 L 600 70 L 700 80 L 800 90 L 880 110 L 860 140 L 800 160 L 820 200 L 780 230 L 720 240 L 660 260 L 620 230 L 560 220 L 520 250 L 460 250 L 440 220 L 460 180 L 420 160 L 380 160 L 360 120 L 380 90 Z"
-    },
-    {
-      name: "Africa",
-      points: "M 420 230 L 460 230 L 480 240 L 520 260 L 540 290 L 550 330 L 520 380 L 490 430 L 470 450 L 460 450 L 460 380 L 440 340 L 410 320 L 380 300 L 380 260 L 400 240 Z"
-    },
-    {
-      name: "Australia",
-      points: "M 750 350 L 800 340 L 830 360 L 830 400 L 780 420 L 740 400 Z"
-    },
-    {
-      name: "Iceland",
-      points: "M 350 100 L 365 100 L 360 110 L 350 110 Z"
-    },
-    {
-      name: "United Kingdom",
-      points: "M 390 130 L 400 130 L 400 150 L 390 150 Z"
-    },
-    {
-      name: "Japan",
-      points: "M 845 150 L 860 165 L 850 185 L 835 170 Z"
-    },
-    {
-      name: "Madagascar",
-      points: "M 535 390 L 545 400 L 535 430 L 525 410 Z"
-    }
-  ];
 
   // Draw Grid Lines helper (Latitude & Longitude)
   const renderGridLines = () => {
@@ -176,23 +154,30 @@ export default function MapPanel({
           ref={svgRef}
           onClick={handleMapClick}
           viewBox="0 0 1000 500"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="xMidYMid meet"
           className={`w-full h-full select-none ${
             isRoundActive && !showResultMap ? 'cursor-crosshair' : 'cursor-default'
           }`}
         >
+          {/* Base Ocean Background */}
+          <rect width="1000" height="500" fill="#090d16" />
+
+          {/* Premium Vector SVG World Map (Infinite Sharpness) */}
+          <image
+            href="/world-map.svg"
+            x="0"
+            y="0"
+            width="1000"
+            height="500"
+            preserveAspectRatio="none"
+            style={{
+              opacity: 0.65,
+              filter: 'invert(1) sepia(1) saturate(5) hue-rotate(185deg) brightness(1.2)'
+            }}
+          />
+
           {/* Map Grid Background */}
           {renderGridLines()}
-
-          {/* Map Continents */}
-          {continents.map((continent) => (
-            <path
-              key={continent.name}
-              d={continent.points}
-              className="fill-cyber-glowPurple/35 stroke-cyber-primary/40 hover:fill-cyber-glowCyan/50 hover:stroke-cyber-cyan/70 transition-all duration-300"
-              strokeWidth="1.5"
-            />
-          ))}
 
           {/* Dotted Connection Line on Result */}
           {showResultMap && actualCoords && guessCoords && (

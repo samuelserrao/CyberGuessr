@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import * as Icons from 'lucide-react';
 import { 
@@ -9,13 +10,16 @@ import {
   Activity, 
   Lock,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Camera
 } from 'lucide-react';
 
 import CircularProgress from '../components/CircularProgress';
 import { ACHIEVEMENTS } from '../utils/mockData';
 
-export default function Profile({ userProfile }) {
+export default function Profile({ userProfile, setUserProfile }) {
+  const fileInputRef = useRef(null);
+  
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
@@ -26,15 +30,82 @@ export default function Profile({ userProfile }) {
     visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
-  const winRate = Math.round((userProfile.stats.wins / userProfile.stats.gamesPlayed) * 100);
-  const xpPercentage = (userProfile.xp / userProfile.xpNext) * 100;
+  const gamesPlayed = userProfile?.stats?.gamesPlayed || 0;
+  const wins = userProfile?.stats?.wins || 0;
+  const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
+  const xpPercentage = ((userProfile?.xp || 0) / (userProfile?.xpNext || 1)) * 100;
+
+  const matches = userProfile?.matchHistory || [];
+  const avgAccuracy = matches.length > 0 
+    ? Math.round(matches.reduce((acc, m) => acc + (m.accuracy || 0), 0) / matches.length)
+    : 0;
+
+  const totalScore = matches.reduce((acc, m) => acc + (m.score || 0), 0);
+  const totalMaxScore = matches.reduce((acc, m) => acc + ((m.rounds || 5) * 5000), 0);
+  const avgScoreRate = totalMaxScore > 0 ? Math.round((totalScore / totalMaxScore) * 100) : 0;
+
+  // Get user initials for fallback avatar
+  const getInitials = () => {
+    if (!userProfile?.username) return '??';
+    return userProfile.username.substring(0, 2).toUpperCase();
+  };
+
+  // Compress profile picture to save localStorage/MongoDB space
+  const compressImage = (dataUrl, callback) => {
+    const img = new Image();
+    img.src = dataUrl;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 120;
+      const MAX_HEIGHT = 120;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL('image/jpeg', 0.75));
+    };
+  };
+
+  // Handle profile picture upload
+  const handlePicUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 2 * 1024 * 1024) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      compressImage(event.target.result, (compressedDataUrl) => {
+        setUserProfile(prev => ({
+          ...prev,
+          profilePic: compressedDataUrl
+        }));
+      });
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Stats definition grid
   const statsList = [
-    { label: "GAMES PLAYED", value: userProfile.stats.gamesPlayed, icon: Map, color: "text-cyber-cyan" },
-    { label: "MISSIONS WON", value: userProfile.stats.wins, icon: Trophy, color: "text-yellow-400" },
-    { label: "AVG ACCURACY", value: "84.5%", icon: Activity, color: "text-cyber-neonGreen" },
-    { label: "BEST SCORE", value: `${userProfile.stats.bestScore} PTS`, icon: TrendingUp, color: "text-cyber-primary" },
+    { label: "GAMES PLAYED", value: gamesPlayed, icon: Map, color: "text-cyber-cyan" },
+    { label: "MISSIONS WON", value: wins, icon: Trophy, color: "text-yellow-400" },
+    { label: "AVG ACCURACY", value: `${avgAccuracy}%`, icon: Activity, color: "text-cyber-neonGreen" },
+    { label: "BEST SCORE", value: `${userProfile?.stats?.bestScore || 0} PTS`, icon: TrendingUp, color: "text-cyber-primary" },
   ];
 
   return (
@@ -51,13 +122,40 @@ export default function Profile({ userProfile }) {
         
         {/* Left Side avatar and level */}
         <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyber-primary to-cyber-secondary border-2 border-cyber-primary shadow-[0_0_15px_rgba(139,92,246,0.35)] flex items-center justify-center font-cyber font-black text-3xl text-white">
-            SW
+          {/* Profile Picture with upload capability */}
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-20 h-20 rounded-2xl border-2 border-cyber-primary shadow-[0_0_15px_rgba(139,92,246,0.35)] overflow-hidden cursor-pointer group profile-pic-ring"
+          >
+            {userProfile?.profilePic ? (
+              <>
+                <img 
+                  src={userProfile.profilePic} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-white" />
+                </div>
+              </>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-cyber-primary to-cyber-secondary flex items-center justify-center font-cyber font-black text-3xl text-white group-hover:opacity-80 transition-opacity duration-300">
+                {getInitials()}
+              </div>
+            )}
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePicUpload}
+            className="hidden"
+          />
+
           <div>
             <div className="flex items-center justify-center md:justify-start gap-2 mb-1.5">
               <h2 className="font-cyber font-extrabold text-2xl text-white tracking-wider">
-                {userProfile.username}
+                {userProfile?.username || 'Agent'}
               </h2>
               <ShieldCheck className="w-5 h-5 text-cyber-cyan" />
             </div>
@@ -69,7 +167,7 @@ export default function Profile({ userProfile }) {
             {/* Level & XP Meter */}
             <div className="flex items-center gap-4">
               <span className="text-xs font-cyber font-bold text-cyber-neonGreen shrink-0">
-                LEVEL {userProfile.level}
+                LEVEL {userProfile?.level || 1}
               </span>
               <div className="w-48 sm:w-64 h-2 bg-gray-800 rounded-full overflow-hidden relative">
                 <div 
@@ -78,7 +176,7 @@ export default function Profile({ userProfile }) {
                 />
               </div>
               <span className="text-[10px] font-cyber text-gray-500 shrink-0">
-                {userProfile.xp} / {userProfile.xpNext} XP
+                {userProfile?.xp || 0} / {userProfile?.xpNext || 2000} XP
               </span>
             </div>
           </div>
@@ -88,7 +186,7 @@ export default function Profile({ userProfile }) {
         <div className="flex gap-4 sm:gap-6 bg-black/35 p-4 rounded-xl border border-white/5">
           <div className="text-center px-2">
             <span className="text-[10px] text-gray-500 font-cyber block tracking-wider uppercase">AVG DISTANCE</span>
-            <span className="text-lg font-cyber font-bold text-cyber-cyan text-glow-cyan">840 KM</span>
+            <span className="text-lg font-cyber font-bold text-cyber-cyan text-glow-cyan">{userProfile?.stats?.avgDistance || 0} KM</span>
           </div>
           <div className="w-px bg-white/10" />
           <div className="text-center px-2">
@@ -203,11 +301,11 @@ export default function Profile({ userProfile }) {
               subtitle="Win-Rate" 
             />
             <CircularProgress 
-              percentage={85} 
+              percentage={avgScoreRate} 
               size={110} 
               strokeWidth={7} 
               color="#8b5cf6" 
-              title="Accuracy"
+              title="Score Rate"
               subtitle="Score-Rate" 
             />
           </motion.div>
@@ -220,31 +318,38 @@ export default function Profile({ userProfile }) {
             </h3>
 
             <div className="flex flex-col gap-3 overflow-y-auto max-h-[350px] pr-1.5 flex-1">
-              {userProfile.matchHistory.map((match) => (
-                <div 
-                  key={match.id}
-                  className="bg-black/30 border border-white/5 hover:border-cyber-primary/20 p-3.5 rounded-xl flex items-center justify-between text-left transition-all duration-200"
-                >
-                  <div className="flex flex-col gap-1">
-                    <span className="font-cyber font-bold text-xs text-white tracking-wide">
-                      {match.mode}
-                    </span>
-                    <span className="text-[9px] text-gray-500 font-mono flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {match.date}
-                    </span>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="font-cyber font-bold text-xs text-cyber-primary block text-glow-purple">
-                      +{match.score} PTS
-                    </span>
-                    <span className="text-[9px] font-cyber text-cyber-neonGreen">
-                      {match.accuracy}% ACC
-                    </span>
-                  </div>
+              {(userProfile?.matchHistory || []).length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 font-cyber text-xs tracking-wider">NO MISSIONS LOGGED YET</p>
+                  <p className="text-gray-600 text-[10px] mt-1 font-mono">Play your first game to see results here.</p>
                 </div>
-              ))}
+              ) : (
+                (userProfile?.matchHistory || []).map((match) => (
+                  <div 
+                    key={match.id}
+                    className="bg-black/30 border border-white/5 hover:border-cyber-primary/20 p-3.5 rounded-xl flex items-center justify-between text-left transition-all duration-200"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="font-cyber font-bold text-xs text-white tracking-wide">
+                        {match.mode}
+                      </span>
+                      <span className="text-[9px] text-gray-500 font-mono flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {match.date}
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="font-cyber font-bold text-xs text-cyber-primary block text-glow-purple">
+                        +{match.score} PTS
+                      </span>
+                      <span className="text-[9px] font-cyber text-cyber-neonGreen">
+                        {match.accuracy}% ACC
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </motion.div>
 

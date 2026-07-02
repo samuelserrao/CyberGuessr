@@ -90,7 +90,7 @@ export default function Game({ mode, setTab, onAddXP }) {
   useEffect(() => {
     // Shuffle locations list
     const shuffled = [...LOCATIONS].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, maxRounds);
+    const selected = shuffled.slice(0, Math.min(shuffled.length, maxRounds));
     setLocationsList(selected);
     setActiveLocation(selected[0]);
     setCurrentRound(1);
@@ -146,6 +146,12 @@ export default function Game({ mode, setTab, onAddXP }) {
     setUserGuessCoord({ lat, lng });
     const dist = calculateDistance(lat, lng, activeLocation.lat, activeLocation.lng);
     
+    console.log("Guess Evaluation Details:", {
+      guess: { lat, lng },
+      target: { name: activeLocation.name, lat: activeLocation.lat, lng: activeLocation.lng },
+      distanceKm: dist
+    });
+
     // Hint deduction: deduct 15% per hint used
     let points = calculateScore(dist);
     if (cluesUsedCount > 0) {
@@ -186,14 +192,14 @@ export default function Game({ mode, setTab, onAddXP }) {
         spread: 100,
         origin: { y: 0.5 }
       });
-      // Add XP to user profile (mock action)
-      onAddXP(Math.round(score / 5));
+      // Add XP and match score to user profile
+      onAddXP(Math.round(score / 5), score);
     }
   };
 
   const resetGame = () => {
     const shuffled = [...LOCATIONS].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, maxRounds);
+    const selected = shuffled.slice(0, Math.min(shuffled.length, maxRounds));
     setLocationsList(selected);
     setActiveLocation(selected[0]);
     setCurrentRound(1);

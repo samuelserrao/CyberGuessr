@@ -105,3 +105,49 @@
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.6));
 }
+
+/* Login Page Styles */
+.login-grid-bg {
+  background-image:
+    linear-gradient(rgba(139, 92, 246, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.08) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: loginGridMove 20s linear infinite;
+}
+
+@keyframes loginGridMove {
+  from { background-position: 0 0; }
+  to { background-position: 60px 60px; }
+}
+
+.login-card {
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.08),
+    0 0 60px rgba(6, 182, 212, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.login-input:focus {
+  box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.3), 0 0 15px rgba(6, 182, 212, 0.1);
+}
+
+/* Profile picture upload hover ring */
+.profile-pic-ring {
+  position: relative;
+}
+.profile-pic-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 1rem;
+  padding: 2px;
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6, #ec4899);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.profile-pic-ring:hover::before {
+  opacity: 1;
+}

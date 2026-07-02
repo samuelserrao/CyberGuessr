@@ -1,14 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Trophy, Globe, UserCheck, TrendingUp, Flag, Award } from 'lucide-react';
-import { LEADERBOARD } from '../utils/mockData';
+import { api } from '../utils/api';
 
 export default function Leaderboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('global'); // global, weekly, local
+  const [leaderboardList, setLeaderboardList] = useState([]);
+
+  useEffect(() => {
+    api.getLeaderboard()
+      .then(data => {
+        setLeaderboardList(data);
+      })
+      .catch(err => {
+        console.error("Failed to load leaderboard stats:", err);
+      });
+  }, []);
 
   // Filter leaderboard based on query
-  const filteredList = LEADERBOARD.filter(player => 
+  const filteredList = leaderboardList.filter(player => 
     player.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

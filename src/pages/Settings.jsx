@@ -1,23 +1,83 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, Volume2, VolumeX, Sliders, User, Globe, Clock, CheckCircle } from 'lucide-react';
+import { Save, Volume2, VolumeX, Sliders, User, Globe, Clock, CheckCircle, Camera, LogOut, Trash2 } from 'lucide-react';
 
-export default function Settings({ userProfile, setUserProfile, settings, setSettings }) {
-  const [username, setUsername] = useState(userProfile.username);
-  const [avatar, setAvatar] = useState('SW');
+export default function Settings({ userProfile, setUserProfile, settings, setSettings, onLogout }) {
+  const [username, setUsername] = useState(userProfile?.username || '');
+  const [profilePic, setProfilePic] = useState(userProfile?.profilePic || null);
   const [mapTheme, setMapTheme] = useState(settings.mapTheme || 'tactical');
   const [timerLimit, setTimerLimit] = useState(settings.timerLimit || 60);
   const [sound, setSound] = useState(settings.sound !== false);
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('googleApiKey') || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const fileInputRef = useRef(null);
+
+  // Compress profile picture to save localStorage space
+  const compressImage = (dataUrl, callback) => {
+    const img = new Image();
+    img.src = dataUrl;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 120;
+      const MAX_HEIGHT = 120;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      callback(canvas.toDataURL('image/jpeg', 0.75));
+    };
+  };
+
+  // Handle profile picture file selection
+  const handlePicUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 2 * 1024 * 1024) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      compressImage(event.target.result, (compressedDataUrl) => {
+        setProfilePic(compressedDataUrl);
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removePic = () => {
+    setProfilePic(null);
+  };
+
+  // Get user initials for fallback avatar
+  const getInitials = () => {
+    if (!username) return '??';
+    return username.substring(0, 2).toUpperCase();
+  };
+
   const handleSave = (e) => {
     e.preventDefault();
     
-    // Save profile username
+    // Save profile username and picture
     setUserProfile(prev => ({
       ...prev,
-      username: username
+      username: username,
+      profilePic: profilePic
     }));
 
     // Save API key
@@ -66,27 +126,56 @@ export default function Settings({ userProfile, setUserProfile, settings, setSet
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
             
-            {/* Avatar selector */}
+            {/* Profile Picture Upload */}
             <div className="flex flex-col items-center">
-              <span className="text-[10px] text-gray-500 font-cyber mb-2 block tracking-wider uppercase">AVATAR ENCRYPT</span>
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyber-primary to-cyber-secondary border-2 border-cyber-primary shadow-[0_0_15px_rgba(139,92,246,0.25)] flex items-center justify-center font-cyber font-black text-2xl text-white">
-                {avatar}
+              <span className="text-[10px] text-gray-500 font-cyber mb-2 block tracking-wider uppercase">AGENT PROFILE IMAGE</span>
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="relative w-20 h-20 rounded-2xl border-2 border-dashed border-white/20 hover:border-cyber-cyan/60 bg-black/40 overflow-hidden cursor-pointer transition-all duration-300 group profile-pic-ring"
+              >
+                {profilePic ? (
+                  <>
+                    <img 
+                      src={profilePic} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-xl">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-cyber-primary to-cyber-secondary flex items-center justify-center font-cyber font-black text-2xl text-white group-hover:opacity-80 transition-opacity duration-300">
+                    {getInitials()}
+                  </div>
+                )}
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePicUpload}
+                className="hidden"
+              />
               <div className="flex gap-2 mt-3">
-                {['SW', 'PX', 'MG'].map(av => (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-[9px] font-cyber text-cyber-cyan hover:text-white transition-colors duration-200 flex items-center gap-1"
+                >
+                  <Camera className="w-3 h-3" />
+                  {profilePic ? 'CHANGE' : 'UPLOAD'}
+                </button>
+                {profilePic && (
                   <button
-                    key={av}
                     type="button"
-                    onClick={() => setAvatar(av)}
-                    className={`w-7 h-7 rounded border font-cyber text-[9px] flex items-center justify-center transition-all duration-200 ${
-                      avatar === av 
-                        ? 'border-cyber-cyan text-cyber-cyan bg-cyber-cyan/15' 
-                        : 'border-white/15 text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
+                    onClick={removePic}
+                    className="text-[9px] font-cyber text-red-400 hover:text-red-300 transition-colors duration-200 flex items-center gap-1"
                   >
-                    {av}
+                    <Trash2 className="w-3 h-3" />
+                    REMOVE
                   </button>
-                ))}
+                )}
               </div>
             </div>
 
@@ -249,6 +338,25 @@ export default function Settings({ userProfile, setUserProfile, settings, setSet
         </div>
 
       </form>
+
+      {/* Danger Zone - Logout */}
+      <div className="mt-8 bg-glass border border-red-500/20 p-6 rounded-2xl backdrop-blur-md text-left">
+        <h3 className="font-cyber font-bold text-xs text-red-400 tracking-wider uppercase mb-4 flex items-center gap-2">
+          <LogOut className="w-4 h-4" />
+          SESSION CONTROL
+        </h3>
+        <p className="text-gray-400 text-xs leading-relaxed mb-4">
+          Terminate your current session. Your profile data will be preserved and you can log back in anytime.
+        </p>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="py-2.5 px-6 rounded-lg border border-red-500/40 hover:border-red-500 hover:bg-red-500/15 text-red-400 hover:text-red-300 font-cyber font-bold text-xs tracking-wider transition-all duration-200 flex items-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          TERMINATE SESSION
+        </button>
+      </div>
 
     </div>
   );

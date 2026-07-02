@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Trophy, CheckCircle, Info } from 'lucide-react';
 
@@ -6,20 +6,23 @@ import Navbar from './components/Navbar';
 import GlobeBackground from './components/GlobeBackground';
 
 // Pages
+import Login from './pages/Login';
 import Landing from './pages/Landing';
 import Game from './pages/Game';
 import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import Admin from './pages/Admin';
 
 // Hooks & Mock Data
 import useTheme from './hooks/useTheme';
-import { USER_PROFILE } from './utils/mockData';
+import { api } from './utils/api';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentTab, setTab] = useState('landing');
   const [gameMode, setGameMode] = useState('standard');
-  const [userProfile, setUserProfile] = useState(USER_PROFILE);
+  const [userProfile, setUserProfile] = useState(null);
   const [theme, toggleTheme] = useTheme();
   
   // Game & System Preferences
@@ -32,6 +35,59 @@ export default function App() {
   // Floating Toast Notification system
   const [toasts, setToasts] = useState([]);
 
+  // Check for existing session on mount and sync offline profiles to MongoDB
+  useEffect(() => {
+    // Sync offline user registries to MongoDB if reachable
+    api.syncLocalUsers()
+      .then(res => {
+        if (res?.syncedUsers?.length > 0) {
+          console.log(`Synced ${res.syncedUsers.length} local profiles with MongoDB:`, res.syncedUsers);
+          showToast(`DATABASE SYNC: ${res.syncedUsers.length} OFFLINE ACCOUNTS LOADED TO MONGODB`, 'success');
+        }
+      })
+      .catch(err => {
+        console.warn('Automatic database sync skipped:', err.message);
+      });
+
+    const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+    if (currentUserKey) {
+      const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+      const savedUser = users[currentUserKey];
+      if (savedUser) {
+        setUserProfile(savedUser);
+        setIsLoggedIn(true);
+        if (currentUserKey.toLowerCase() === 'admin') {
+          setTab('admin');
+        }
+      }
+    }
+  }, []);
+
+  // Persist user profile changes to localStorage & MongoDB backend
+  const updateAndPersistProfile = (updater) => {
+    setUserProfile(prev => {
+      const newProfile = typeof updater === 'function' ? updater(prev) : updater;
+      
+      // Persist to localStorage
+      const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+      if (currentUserKey) {
+        const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+        users[currentUserKey] = newProfile;
+        localStorage.setItem('geoGuessr_users', JSON.stringify(users));
+      }
+
+      // Persist to MongoDB backend if reachable
+      if (api.isAvailable() && currentUserKey && currentUserKey.toLowerCase() !== 'admin') {
+        api.updateProfile(newProfile.username, newProfile.profilePic)
+          .catch(err => {
+            console.error("Failed to sync profile changes to MongoDB server:", err);
+          });
+      }
+      
+      return newProfile;
+    });
+  };
+
   const showToast = (message, type = 'info') => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type }]);
@@ -42,15 +98,51 @@ export default function App() {
     }, 3200);
   };
 
+  // Handle login from Login page
+  const handleLogin = (userData) => {
+    setUserProfile(userData);
+    setIsLoggedIn(true);
+    const isAdmin = userData.username.toLowerCase() === 'admin';
+    setTab(isAdmin ? 'admin' : 'landing');
+    showToast(isAdmin ? 'WELCOME, ADMIN COMMAND!' : `WELCOME, AGENT ${userData.username.toUpperCase()}!`, 'success');
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('geoGuessr_currentUser');
+    setIsLoggedIn(false);
+    setUserProfile(null);
+    setTab('landing');
+  };
+
   const handleStartGame = (mode) => {
     setGameMode(mode);
     setTab('game');
     showToast(`CONNECTING SATELLITE FEED... MODE: ${mode.toUpperCase()}`, 'info');
   };
 
-  // Add XP when rounds finish and trigger levels-ups
-  const handleAddXP = (xpAmount) => {
-    setUserProfile(prev => {
+  // Add XP and match logs when rounds finish and trigger level-ups
+  const handleAddXP = (xpAmount, finalScore = 0) => {
+    // Persist to MongoDB backend if available
+    if (api.isAvailable()) {
+      const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+      if (currentUserKey && currentUserKey.toLowerCase() !== 'admin') {
+        api.addXP(xpAmount, finalScore, gameMode)
+          .then(updatedUser => {
+            if (updatedUser) {
+              setUserProfile(updatedUser);
+              const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+              users[currentUserKey] = updatedUser;
+              localStorage.setItem('geoGuessr_users', JSON.stringify(users));
+            }
+          })
+          .catch(err => {
+            console.error("Failed to sync match record with database:", err);
+          });
+      }
+    }
+
+    updateAndPersistProfile(prev => {
       let newXp = prev.xp + xpAmount;
       let newLevel = prev.level;
       let newXpNext = prev.xpNext;
@@ -88,19 +180,47 @@ export default function App() {
         showToast(`MISSION COMPLETED: +${xpAmount} XP RECOVERED`, 'success');
       }
 
+      // Calculate accuracy
+      const maxPossibleScore = (gameMode === 'multiplayer' ? 3 : 5) * 5000;
+      const gameAccuracy = Math.round((finalScore / maxPossibleScore) * 100);
+
+      const newMatch = {
+        id: `m_${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        score: finalScore,
+        mode: gameMode === 'standard' ? 'Standard Play' : gameMode === 'daily' ? 'Daily Challenge' : 'Multiplayer Clash',
+        rounds: gameMode === 'multiplayer' ? 3 : 5,
+        accuracy: gameAccuracy
+      };
+
+      const updatedHistory = [...(prev.matchHistory || []), newMatch];
+      const newBestScore = Math.max(prev.stats?.bestScore || 0, finalScore);
+
       return {
         ...prev,
         xp: newXp,
         level: newLevel,
         xpNext: newXpNext,
+        matchHistory: updatedHistory,
         stats: {
           ...prev.stats,
           gamesPlayed: prev.stats.gamesPlayed + 1,
-          wins: xpAmount > 1500 ? prev.stats.wins + 1 : prev.stats.wins
+          wins: finalScore > 7500 ? prev.stats.wins + 1 : prev.stats.wins,
+          bestScore: newBestScore
         }
       };
     });
   };
+
+  // If not logged in, show login screen only
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen w-full flex flex-col relative">
+        <GlobeBackground />
+        <Login onLogin={handleLogin} />
+      </div>
+    );
+  }
 
   // Render active router layout
   const renderActiveTab = () => {
@@ -112,19 +232,22 @@ export default function App() {
       case 'leaderboard':
         return <Leaderboard />;
       case 'profile':
-        return <Profile userProfile={userProfile} />;
+        return <Profile userProfile={userProfile} setUserProfile={updateAndPersistProfile} />;
       case 'settings':
         return (
           <Settings 
             userProfile={userProfile} 
-            setUserProfile={setUserProfile}
+            setUserProfile={updateAndPersistProfile}
             settings={settings}
             setSettings={(newPref) => {
               setSettings(newPref);
               showToast("INTERFACE PROTOCOL ADJUSTED", "info");
             }}
+            onLogout={handleLogout}
           />
         );
+      case 'admin':
+        return <Admin />;
       default:
         return <Landing setTab={setTab} startGame={handleStartGame} />;
     }
@@ -142,6 +265,7 @@ export default function App() {
         theme={theme} 
         toggleTheme={toggleTheme} 
         userProfile={userProfile}
+        onLogout={handleLogout}
       />
 
       {/* Main viewport space with fluid cross-fading animations */}

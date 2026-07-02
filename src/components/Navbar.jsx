@@ -10,26 +10,41 @@ import {
   Menu, 
   X,
   Compass,
-  Zap
+  Zap,
+  LogOut,
+  ShieldAlert
 } from 'lucide-react';
 
-export default function Navbar({ currentTab, setTab, theme, toggleTheme, userProfile }) {
+export default function Navbar({ currentTab, setTab, theme, toggleTheme, userProfile, onLogout }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = [
-    { id: 'landing', label: 'Home', icon: Compass },
-    { id: 'game', label: 'Play', icon: Gamepad2 },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
-  ];
+  const isAdmin = userProfile?.username?.toLowerCase() === 'admin';
+  const navItems = isAdmin 
+    ? [{ id: 'admin', label: 'Admin Panel', icon: ShieldAlert }]
+    : [
+        { id: 'landing', label: 'Home', icon: Compass },
+        { id: 'game', label: 'Play', icon: Gamepad2 },
+        { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'settings', label: 'Settings', icon: Settings }
+      ];
 
   const handleNavClick = (tabId) => {
-    setTab(tabId);
+    if (isAdmin) {
+      setTab('admin');
+    } else {
+      setTab(tabId);
+    }
     setMobileMenuOpen(false);
   };
 
-  const xpPercentage = (userProfile.xp / userProfile.xpNext) * 100;
+  const xpPercentage = userProfile ? (userProfile.xp / userProfile.xpNext) * 100 : 0;
+
+  // Get user initials for fallback avatar
+  const getInitials = () => {
+    if (!userProfile?.username) return '??';
+    return userProfile.username.substring(0, 2).toUpperCase();
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full px-4 py-3 md:px-8 border-b border-white/10 bg-glass backdrop-blur-md transition-all duration-300">
@@ -37,7 +52,7 @@ export default function Navbar({ currentTab, setTab, theme, toggleTheme, userPro
         
         {/* Logo */}
         <div 
-          onClick={() => handleNavClick('landing')}
+          onClick={() => handleNavClick(isAdmin ? 'admin' : 'landing')}
           className="flex items-center gap-2 cursor-pointer group"
         >
           <motion.div
@@ -84,27 +99,47 @@ export default function Navbar({ currentTab, setTab, theme, toggleTheme, userPro
         {/* User stats widget & Theme toggle */}
         <div className="hidden md:flex items-center gap-4">
           
-          {/* User Level Widget */}
-          <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg p-1.5 px-3">
-            <div className="flex flex-col items-start">
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-cyber-neonGreen animate-pulse" />
-                <span className="text-xs text-gray-400 font-cyber font-medium">LVL {userProfile.level}</span>
+          {/* User Level Widget with Profile Picture (Hidden for Admin) */}
+          {!isAdmin && (
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg p-1.5 px-3">
+              {/* Profile Picture */}
+              <div 
+                onClick={() => handleNavClick('profile')}
+                className="w-8 h-8 rounded-lg overflow-hidden border border-white/20 cursor-pointer hover:border-cyber-cyan/50 transition-all duration-300 shrink-0"
+              >
+                {userProfile?.profilePic ? (
+                  <img 
+                    src={userProfile.profilePic} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-cyber-primary to-cyber-secondary flex items-center justify-center font-cyber text-[9px] font-bold text-white">
+                    {getInitials()}
+                  </div>
+                )}
               </div>
-              {/* Mini progress bar */}
-              <div className="w-24 h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-cyber-neonGreen to-cyber-cyan shadow-[0_0_5px_rgba(16,189,129,0.5)] transition-all duration-500"
-                  style={{ width: `${xpPercentage}%` }}
-                />
+
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-cyber-neonGreen animate-pulse" />
+                  <span className="text-xs text-gray-400 font-cyber font-medium">LVL {userProfile?.level || 1}</span>
+                </div>
+                {/* Mini progress bar */}
+                <div className="w-24 h-1.5 bg-gray-700 rounded-full mt-1 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyber-neonGreen to-cyber-cyan shadow-[0_0_5px_rgba(16,189,129,0.5)] transition-all duration-500"
+                    style={{ width: `${xpPercentage}%` }}
+                  />
+                </div>
+              </div>
+              <div className="h-6 w-px bg-white/10" />
+              <div className="text-right">
+                <span className="text-xs text-gray-400 block font-rajdhani">Best Score</span>
+                <span className="text-xs text-cyber-cyan font-cyber font-semibold">{userProfile?.stats?.bestScore || 0} pts</span>
               </div>
             </div>
-            <div className="h-6 w-px bg-white/10" />
-            <div className="text-right">
-              <span className="text-xs text-gray-400 block font-rajdhani">Best Score</span>
-              <span className="text-xs text-cyber-cyan font-cyber font-semibold">{userProfile.stats.bestScore} pts</span>
-            </div>
-          </div>
+          )}
 
           {/* Theme Toggle */}
           <button
@@ -114,10 +149,31 @@ export default function Navbar({ currentTab, setTab, theme, toggleTheme, userPro
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-cyber-cyan" /> : <Moon className="w-4 h-4 text-cyber-primary" />}
           </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={onLogout}
+            className="p-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/40 hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-all duration-300 shadow-sm"
+            aria-label="Logout"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Mobile menu & Theme controls */}
         <div className="flex lg:hidden items-center gap-3">
+          {/* Mobile Profile Pic */}
+          <div className="w-7 h-7 rounded-lg overflow-hidden border border-white/20 shrink-0">
+            {userProfile?.profilePic ? (
+              <img src={userProfile.profilePic} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-cyber-primary to-cyber-secondary flex items-center justify-center font-cyber text-[8px] font-bold text-white">
+                {getInitials()}
+              </div>
+            )}
+          </div>
+
           {/* Mobile Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -166,20 +222,31 @@ export default function Navbar({ currentTab, setTab, theme, toggleTheme, userPro
               );
             })}
 
-            {/* Mobile Stats Summary */}
-            <div className="mt-2 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-cyber-neonGreen" />
-                <span className="text-sm text-gray-300 font-cyber">Lvl {userProfile.level}</span>
+            {/* Mobile Stats Summary (Hidden for Admin) */}
+            {!isAdmin && (
+              <div className="mt-2 p-3 bg-white/5 rounded-lg border border-white/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-cyber-neonGreen" />
+                  <span className="text-sm text-gray-300 font-cyber">Lvl {userProfile?.level || 1}</span>
+                </div>
+                <div className="w-1/2 h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-cyber-neonGreen to-cyber-cyan"
+                    style={{ width: `${xpPercentage}%` }}
+                  />
+                </div>
+                <span className="text-xs text-cyber-cyan font-cyber font-semibold">{userProfile?.stats?.bestScore || 0} pts</span>
               </div>
-              <div className="w-1/2 h-2 bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-cyber-neonGreen to-cyber-cyan"
-                  style={{ width: `${xpPercentage}%` }}
-                />
-              </div>
-              <span className="text-xs text-cyber-cyan font-cyber font-semibold">{userProfile.stats.bestScore} pts</span>
-            </div>
+            )}
+
+            {/* Mobile Logout Button */}
+            <button
+              onClick={onLogout}
+              className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 font-rajdhani text-lg font-bold text-red-400 hover:bg-red-500/10 transition-all duration-200"
+            >
+              <LogOut className="w-5 h-5" />
+              Logout
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
