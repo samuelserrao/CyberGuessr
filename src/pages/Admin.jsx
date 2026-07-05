@@ -13,19 +13,133 @@ import {
   CheckCircle,
   Database,
   Globe,
-  Award
+  Award,
+  MapPin,
+  Upload,
+  RefreshCw
 } from 'lucide-react';
 import { LEADERBOARD as DEFAULT_LEADERBOARD } from '../utils/mockData';
 import { api } from '../utils/api';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { useRef } from 'react';
+
+// Custom Map Component for coordinate selection in admin form
+function AdminMap({ onSelectCoord, selectedCoord }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    // Initialize map centered at some default view or selected coord
+    const map = L.map(mapContainerRef.current, {
+      center: selectedCoord ? [selectedCoord.lat, selectedCoord.lng] : [20, 0],
+      zoom: selectedCoord ? 6 : 1.5,
+      zoomControl: true,
+      attributionControl: true
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      minZoom: 1,
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    // Custom marker icon
+    const adminMarkerIcon = L.divIcon({
+      className: 'custom-admin-marker',
+      html: `<div class="relative flex items-center justify-center w-8 h-8 pointer-events-none">
+               <div class="absolute w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/40 animate-ping"></div>
+               <div class="absolute w-4 h-4 rounded-full bg-pink-500 border-2 border-white shadow-[0_0_12px_rgba(236,72,153,0.85)]"></div>
+             </div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    if (selectedCoord) {
+      markerRef.current = L.marker([selectedCoord.lat, selectedCoord.lng], { icon: adminMarkerIcon }).addTo(map);
+    }
+
+    const onMapClick = (e) => {
+      const { lat, lng } = e.latlng;
+      onSelectCoord(lat, lng);
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([lat, lng]);
+      } else {
+        markerRef.current = L.marker([lat, lng], { icon: adminMarkerIcon }).addTo(map);
+      }
+    };
+
+    map.on('click', onMapClick);
+
+    // Trigger map invalidation to handle sizes in tab switches
+    setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    }, 200);
+
+    return () => {
+      map.off('click', onMapClick);
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, []);
+
+  // Sync marker position when selectedCoord changes externally
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selectedCoord) return;
+    const { lat, lng } = selectedCoord;
+    
+    const adminMarkerIcon = L.divIcon({
+      className: 'custom-admin-marker',
+      html: `<div class="relative flex items-center justify-center w-8 h-8 pointer-events-none">
+               <div class="absolute w-8 h-8 rounded-full bg-pink-500/20 border border-pink-500/40 animate-ping"></div>
+               <div class="absolute w-4 h-4 rounded-full bg-pink-500 border-2 border-white shadow-[0_0_12px_rgba(236,72,153,0.85)]"></div>
+             </div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+
+    if (markerRef.current) {
+      markerRef.current.setLatLng([lat, lng]);
+    } else {
+      markerRef.current = L.marker([lat, lng], { icon: adminMarkerIcon }).addTo(map);
+    }
+  }, [selectedCoord]);
+
+  return <div ref={mapContainerRef} className="w-full h-[280px] rounded-xl border border-white/10 overflow-hidden" />;
+}
 
 export default function Admin() {
   const [users, setUsers] = useState({});
   const [leaderboard, setLeaderboard] = useState([]);
-  const [activeTab, setActiveTab] = useState('users'); // 'users' or 'leaderboard'
+  const [locations, setLocations] = useState([]);
+  const [activeTab, setActiveTab] = useState('users'); // 'users', 'leaderboard', 'locations'
   
   // Search states
   const [userSearch, setUserSearch] = useState('');
   const [leaderboardSearch, setLeaderboardSearch] = useState('');
+  const [locationSearch, setLocationSearch] = useState('');
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  // Add Custom Location states
+  const [addLocName, setAddLocName] = useState('');
+  const [addLocCountry, setAddLocCountry] = useState('');
+  const [addLocLat, setAddLocLat] = useState('');
+  const [addLocLng, setAddLocLng] = useState('');
+  const [addLocImg, setAddLocImg] = useState('');
+  const [addLocClue1, setAddLocClue1] = useState('');
+  const [addLocClue2, setAddLocClue2] = useState('');
+  const [addLocClue3, setAddLocClue3] = useState('');
+  const [addLocDesc, setAddLocDesc] = useState('');
   
   // Edit User Modal State
   const [editingUser, setEditingUser] = useState(null);
@@ -82,6 +196,14 @@ export default function Admin() {
       })
       .catch(err => {
         console.error("Admin failed to load leaderboard:", err);
+      });
+
+    api.getLocations()
+      .then(data => {
+        setLocations(data);
+      })
+      .catch(err => {
+        console.error("Admin failed to load locations:", err);
       });
   };
 
@@ -251,6 +373,103 @@ export default function Admin() {
     showNotification("NEW STANDING COMMITTED TO LEADERBOARD");
   };
 
+  // Custom Locations Actions
+  const handleDeleteLocation = (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to permanently decommission this location?");
+    if (!confirmDelete) return;
+
+    api.deleteLocation(id)
+      .then(() => {
+        setLocations(prev => prev.filter(l => l._id !== id && l.id !== id));
+        showNotification("TARGET NODE RETIRED SUCCESSFULLY");
+      })
+      .catch(err => {
+        showNotification(err.message || "Failed to delete target", true);
+      });
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      showNotification("FILE TOO LARGE: Max limit is 8MB", true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAddLocImg(reader.result);
+      showNotification("IMAGE VECTOR CACHED SUCCESSFULLY");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSelectCoord = (lat, lng) => {
+    setAddLocLat(lat.toFixed(6));
+    setAddLocLng(lng.toFixed(6));
+    setIsGeocoding(true);
+
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.address) {
+          const address = data.address;
+          const name = address.tourism || address.amenity || address.historic || address.landmark || address.suburb || address.city || address.town || address.county || address.state || 'Unknown Coordinate';
+          const country = address.country || 'Unknown';
+          
+          setAddLocName(name);
+          setAddLocCountry(country);
+          showNotification("COORDINATES RESOLVED BY SYSTEM");
+        }
+      })
+      .catch(err => {
+        console.warn("Osm geocode search failed:", err);
+      })
+      .finally(() => {
+        setIsGeocoding(false);
+      });
+  };
+
+  const handleAddLocation = (e) => {
+    e.preventDefault();
+
+    if (!addLocName || !addLocCountry || addLocLat === '' || addLocLng === '' || !addLocImg) {
+      showNotification("FIELDS REQUIRED: Map coordinates, name, country, and image are required.", true);
+      return;
+    }
+
+    const clues = [addLocClue1, addLocClue2, addLocClue3].map(c => c.trim()).filter(c => c !== '');
+
+    const payload = {
+      name: addLocName.trim(),
+      country: addLocCountry.trim(),
+      lat: Number(addLocLat),
+      lng: Number(addLocLng),
+      imageUrl: addLocImg,
+      clues,
+      description: addLocDesc.trim()
+    };
+
+    api.addLocation(payload)
+      .then(newLoc => {
+        setLocations(prev => [newLoc, ...prev]);
+        setAddLocName('');
+        setAddLocCountry('');
+        setAddLocLat('');
+        setAddLocLng('');
+        setAddLocImg('');
+        setAddLocClue1('');
+        setAddLocClue2('');
+        setAddLocClue3('');
+        setAddLocDesc('');
+        showNotification("NEW SYSTEM TARGET SYNAPSE MAPPED");
+      })
+      .catch(err => {
+        showNotification(err.message || "Failed to commit target synapse", true);
+      });
+  };
+
   // Filters
   const filteredUsers = Object.values(users).filter(user => 
     user.username.toLowerCase().includes(userSearch.toLowerCase())
@@ -301,6 +520,17 @@ export default function Admin() {
           <Trophy className="w-3.5 h-3.5 inline mr-2" />
           Leaderboard Matrix
         </button>
+        <button
+          onClick={() => setActiveTab('locations')}
+          className={`px-6 py-2.5 rounded-lg border font-cyber text-xs tracking-wider uppercase transition-all duration-200 ${
+            activeTab === 'locations'
+              ? 'bg-pink-500/25 border-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.35)]'
+              : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'
+          }`}
+        >
+          <Globe className="w-3.5 h-3.5 inline mr-2" />
+          Location Database
+        </button>
       </div>
 
       {/* Floating Notifications */}
@@ -328,7 +558,7 @@ export default function Admin() {
       </AnimatePresence>
 
       <div className="w-full">
-        {activeTab === 'users' ? (
+        {activeTab === 'users' && (
           /* TAB 1: User Management */
           <div className="bg-glass border border-white/10 p-6 rounded-2xl backdrop-blur-md text-left">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -420,7 +650,9 @@ export default function Admin() {
               </table>
             </div>
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'leaderboard' && (
           /* TAB 2: Leaderboard Management */
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
@@ -605,6 +837,259 @@ export default function Admin() {
               </form>
             </div>
 
+          </div>
+        )}
+
+        {activeTab === 'locations' && (
+          /* TAB 3: Location Management */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Column: Locations list */}
+            <div className="lg:col-span-7 bg-glass border border-white/10 p-6 rounded-2xl backdrop-blur-md text-left">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h3 className="font-cyber font-bold text-sm text-pink-500 tracking-wider uppercase flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  MAP SYNAPSE REGISTRY ({locations.length})
+                </h3>
+                
+                {/* Search Bar */}
+                <div className="relative w-full sm:w-56">
+                  <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="SEARCH LOCATIONS..."
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg pl-9 pr-4 py-2 font-rajdhani text-sm text-white focus:outline-none transition-all duration-300"
+                  />
+                </div>
+              </div>
+
+              {/* Locations Table */}
+              <div className="overflow-x-auto w-full">
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-white/5 font-cyber text-[10px] text-gray-500 tracking-wider">
+                      <th className="pb-3 pr-2">PREVIEW</th>
+                      <th className="pb-3 pr-2">LOCATION NAME</th>
+                      <th className="pb-3 pr-2">COORDINATES</th>
+                      <th className="pb-3 pr-2">SOURCE</th>
+                      <th className="pb-3 text-right">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-rajdhani text-sm font-semibold text-gray-300">
+                    {locations.filter(l => l.name.toLowerCase().includes(locationSearch.toLowerCase()) || l.country.toLowerCase().includes(locationSearch.toLowerCase())).length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-gray-500 font-cyber text-xs">
+                          NO LOCATIONS MAPPED
+                        </td>
+                      </tr>
+                    ) : (
+                      locations
+                        .filter(l => l.name.toLowerCase().includes(locationSearch.toLowerCase()) || l.country.toLowerCase().includes(locationSearch.toLowerCase()))
+                        .map((loc) => (
+                          <tr key={loc._id || loc.id} className="hover:bg-white/5 transition-colors duration-150">
+                            <td className="py-3 pr-2 shrink-0">
+                              <div className="w-16 h-10 rounded overflow-hidden border border-white/10 bg-black/40">
+                                <img src={loc.imageUrl} alt={loc.name} className="w-full h-full object-cover" onError={(e) => {
+                                  e.target.src = 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=200';
+                                }} />
+                              </div>
+                            </td>
+                            <td className="py-3 pr-2">
+                              <span className="text-white block font-cyber text-xs tracking-wide">{loc.name}</span>
+                              <span className="text-[10px] text-gray-500 font-cyber uppercase">{loc.country}</span>
+                            </td>
+                            <td className="py-3 pr-2 font-mono text-xs text-cyber-cyan">
+                              {Number(loc.lat).toFixed(4)}, {Number(loc.lng).toFixed(4)}
+                            </td>
+                            <td className="py-3 pr-2">
+                              <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-cyber tracking-wider ${
+                                loc.isCustom 
+                                  ? 'bg-pink-500/10 text-pink-400 border border-pink-500/30' 
+                                  : 'bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30'
+                              }`}>
+                                {loc.isCustom ? 'CUSTOM' : 'SYSTEM'}
+                              </span>
+                            </td>
+                            <td className="py-3 text-right">
+                              <button
+                                onClick={() => handleDeleteLocation(loc._id || loc.id)}
+                                className="p-1.5 rounded bg-white/5 border border-white/10 text-gray-400 hover:text-red-400 hover:border-red-500/30 transition-all duration-200"
+                                title="Decommission Location"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Right Column: Add Custom Location form */}
+            <div className="lg:col-span-5 bg-glass border border-white/10 p-6 rounded-2xl backdrop-blur-md text-left">
+              <h3 className="font-cyber font-bold text-sm text-pink-500 tracking-wider uppercase mb-5 flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                ADD LOCATION MATRIX
+              </h3>
+
+              <form onSubmit={handleAddLocation} className="space-y-4">
+                {/* Image Picker */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] text-gray-500 font-cyber tracking-wider">LOCATION SATELLITE IMAGE</label>
+                  
+                  {/* Preview box */}
+                  {addLocImg ? (
+                    <div className="relative w-full h-36 rounded-lg border border-white/10 overflow-hidden group bg-black/20">
+                      <img src={addLocImg} alt="Preview" className="w-full h-full object-cover animate-fade-in" />
+                      <button
+                        type="button"
+                        onClick={() => setAddLocImg('')}
+                        className="absolute top-2 right-2 p-1.5 rounded bg-black/60 border border-white/10 text-gray-400 hover:text-white transition-colors duration-200"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* File Uploader */}
+                      <label className="flex flex-col items-center justify-center h-24 border border-dashed border-white/10 hover:border-pink-500/50 rounded-lg cursor-pointer bg-black/20 hover:bg-pink-500/5 transition-all duration-300">
+                        <Upload className="w-5 h-5 text-gray-400 mb-1" />
+                        <span className="text-[10px] text-gray-400 font-cyber uppercase tracking-wider">UPLOAD FILE</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      
+                      {/* URL input placeholder */}
+                      <div className="flex flex-col justify-center h-24 border border-white/10 rounded-lg bg-black/20 px-3 gap-1">
+                        <span className="text-[9px] text-gray-500 font-cyber tracking-wider">OR ENTER URL</span>
+                        <input
+                          type="text"
+                          placeholder="https://..."
+                          onChange={(e) => setAddLocImg(e.target.value)}
+                          className="bg-black/40 border border-white/10 focus:border-pink-500/50 rounded px-2 py-1 font-rajdhani text-xs text-white focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Coordinates Selection Map */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] text-gray-500 font-cyber tracking-wider">TACTICAL LOCATION SYNC (CLICK ON MAP)</label>
+                  <AdminMap onSelectCoord={handleSelectCoord} selectedCoord={addLocLat && addLocLng ? { lat: Number(addLocLat), lng: Number(addLocLng) } : null} />
+                </div>
+
+                {/* Coordinate Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] text-gray-500 font-cyber tracking-wider">LATITUDE</label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      placeholder="e.g. 48.8584"
+                      value={addLocLat}
+                      onChange={(e) => setAddLocLat(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-2 font-rajdhani text-sm font-semibold text-white focus:outline-none transition-all duration-300"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] text-gray-500 font-cyber tracking-wider">LONGITUDE</label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      placeholder="e.g. 2.2945"
+                      value={addLocLng}
+                      onChange={(e) => setAddLocLng(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-2 font-rajdhani text-sm font-semibold text-white focus:outline-none transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Auto Resolved Name & Country */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] text-gray-500 font-cyber tracking-wider flex items-center gap-1">
+                      LOCATION NAME 
+                      {isGeocoding && <RefreshCw className="w-2.5 h-2.5 animate-spin text-pink-400" />}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Eiffel Tower"
+                      value={addLocName}
+                      onChange={(e) => setAddLocName(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-2 font-rajdhani text-sm font-semibold text-white focus:outline-none transition-all duration-300"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] text-gray-500 font-cyber tracking-wider">COUNTRY</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. France"
+                      value={addLocCountry}
+                      onChange={(e) => setAddLocCountry(e.target.value)}
+                      className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-2 font-rajdhani text-sm font-semibold text-white focus:outline-none transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Progressive Clues */}
+                <div className="space-y-2">
+                  <label className="text-[9px] text-gray-500 font-cyber tracking-wider block">PROGRESSIVE INTELLIGENCE CLUES (OPTIONAL)</label>
+                  <input
+                    type="text"
+                    placeholder="Clue 1: Vague (e.g. West Europe capital...)"
+                    value={addLocClue1}
+                    onChange={(e) => setAddLocClue1(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-1.5 font-rajdhani text-xs text-white focus:outline-none transition-all duration-300"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Clue 2: Medium (e.g. 1889 World's Fair arch...)"
+                    value={addLocClue2}
+                    onChange={(e) => setAddLocClue2(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-1.5 font-rajdhani text-xs text-white focus:outline-none transition-all duration-300"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Clue 3: Specific (e.g. Iron Lady lattice...)"
+                    value={addLocClue3}
+                    onChange={(e) => setAddLocClue3(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-1.5 font-rajdhani text-xs text-white focus:outline-none transition-all duration-300"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[9px] text-gray-500 font-cyber tracking-wider">INTEL DOSSIER / DESCRIPTION</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Provide a historical or structural profile of this target..."
+                    value={addLocDesc}
+                    onChange={(e) => setAddLocDesc(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 focus:border-pink-500/50 rounded-lg px-3 py-2 font-rajdhani text-xs text-white focus:outline-none transition-all duration-300 resize-none animate-fade-in"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-md bg-gradient-to-r from-pink-500 to-purple-600 text-white font-cyber text-xs tracking-wider font-semibold shadow-[0_0_15px_rgba(236,72,153,0.4)] hover:shadow-[0_0_25px_rgba(236,72,153,0.6)] hover:scale-102 active:scale-98 transition-all duration-200 flex items-center justify-center gap-2 mt-4"
+                >
+                  <Plus className="w-4 h-4" />
+                  ACTIVATE TARGET NODE
+                </button>
+              </form>
+            </div>
           </div>
         )}
       </div>

@@ -20,6 +20,7 @@ import StreetView from '../components/StreetView';
 import MapPanel from '../components/MapPanel';
 import { LOCATIONS } from '../utils/mockData';
 import { calculateDistance, calculateScore } from '../utils/gameEngine';
+import { api } from '../utils/api';
 
 // Simple Web Audio synthesizer for Cyberpunk retro sound effects
 const playSound = (type, soundEnabled) => {
@@ -68,7 +69,7 @@ const playSound = (type, soundEnabled) => {
   }
 };
 
-export default function Game({ mode, setTab, onAddXP }) {
+export default function Game({ mode, setTab, onAddXP, settings }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [gameState, setGameState] = useState('playing'); // playing, result, finished
   const [currentRound, setCurrentRound] = useState(1);
@@ -81,24 +82,58 @@ export default function Game({ mode, setTab, onAddXP }) {
   const [cluesUsedCount, setCluesUsedCount] = useState(0);
   const [userGuessCoord, setUserGuessCoord] = useState(null); // { lat, lng }
   const [roundStats, setRoundStats] = useState({ distance: 0, points: 0 });
+  const [loading, setLoading] = useState(true);
 
   const timerRef = useRef(null);
+  const handleTimeOutRef = useRef(null);
+
+  // Keep handleTimeOutRef updated on every render to avoid stale closures in the timer interval
+  useEffect(() => {
+    handleTimeOutRef.current = handleTimeOut;
+  });
 
   const maxRounds = mode === 'multiplayer' ? 3 : 5;
 
   // Initialize game locations list randomly
   useEffect(() => {
-    // Shuffle locations list
-    const shuffled = [...LOCATIONS].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, Math.min(shuffled.length, maxRounds));
-    setLocationsList(selected);
-    setActiveLocation(selected[0]);
-    setCurrentRound(1);
-    setScore(0);
-    setGameState('playing');
-    setTimeLeft(mode === 'daily' ? 45 : 60);
-    setCluesUsedCount(0);
-    setUserGuessCoord(null);
+    let active = true;
+    setLoading(true);
+    
+    api.getLocations()
+      .then(locs => {
+        if (!active) return;
+        // Shuffle locations list
+        const shuffled = [...locs].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, Math.min(shuffled.length, maxRounds));
+        setLocationsList(selected);
+        setActiveLocation(selected[0]);
+        setCurrentRound(1);
+        setScore(0);
+        setGameState('playing');
+        setTimeLeft(mode === 'daily' ? 45 : 60);
+        setCluesUsedCount(0);
+        setUserGuessCoord(null);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load game locations:", err);
+        if (!active) return;
+        const shuffled = [...LOCATIONS].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, Math.min(shuffled.length, maxRounds));
+        setLocationsList(selected);
+        setActiveLocation(selected[0]);
+        setCurrentRound(1);
+        setScore(0);
+        setGameState('playing');
+        setTimeLeft(mode === 'daily' ? 45 : 60);
+        setCluesUsedCount(0);
+        setUserGuessCoord(null);
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [mode, maxRounds]);
 
   // Handle Timer Countdown
@@ -112,7 +147,9 @@ export default function Game({ mode, setTab, onAddXP }) {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
-          handleTimeOut();
+          if (handleTimeOutRef.current) {
+            handleTimeOutRef.current();
+          }
           return 0;
         }
         
@@ -217,7 +254,24 @@ export default function Game({ mode, setTab, onAddXP }) {
     if (timeLeft > 10) return 'text-cyber-neonYellow';
     return 'text-cyber-secondary animate-pulse';
   };
-
+  
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+        <div className="relative w-20 h-20 mb-6 flex items-center justify-center">
+          <div className="absolute w-20 h-20 rounded-full border-4 border-cyber-cyan/10 border-t-cyber-cyan animate-spin"></div>
+          <div className="absolute w-12 h-12 rounded-full border-4 border-cyber-primary/10 border-b-cyber-primary animate-spin [animation-direction:reverse]"></div>
+        </div>
+        <h3 className="font-cyber font-bold text-lg text-white uppercase tracking-widest animate-pulse">
+          INITIALIZING MAP SYNAPSE...
+        </h3>
+        <p className="text-gray-400 font-rajdhani text-xs tracking-wider uppercase mt-2">
+          Syncing Central Location Datastream
+        </p>
+      </div>
+    );
+  }
+  
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 md:py-8 flex flex-col gap-6 select-none min-h-[calc(100vh-80px)]">
       
@@ -291,6 +345,7 @@ export default function Game({ mode, setTab, onAddXP }) {
                 actualLocation={null}
                 showResultMap={false}
                 userGuessCoord={null}
+                mapTheme={settings?.mapTheme}
               />
             </div>
           </motion.div>
@@ -372,6 +427,7 @@ export default function Game({ mode, setTab, onAddXP }) {
                 actualLocation={activeLocation}
                 showResultMap={true}
                 userGuessCoord={userGuessCoord}
+                mapTheme={settings?.mapTheme}
               />
             </div>
           </motion.div>

@@ -151,3 +151,31 @@
 .profile-pic-ring:hover::before {
   opacity: 1;
 }
+
+/* Custom Leaflet Map Adjustments */
+.leaflet-container {
+  background-color: #090d16 !important;
+  font-family: inherit;
+}
+
+.leaflet-control-attribution {
+  background: rgba(3, 0, 10, 0.85) !important;
+  color: #64748b !important;
+  font-family: monospace;
+  font-size: 8px !important;
+  border-top-left-radius: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+}
+
+.leaflet-control-attribution a {
+  color: #06b6d4 !important;
+}
+
+/* Custom leaflet marker alignment / pointer events */
+.custom-guess-marker, .custom-actual-marker {
+  background: none;
+  border: none;
+}
+

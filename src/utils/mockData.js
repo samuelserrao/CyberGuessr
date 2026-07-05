@@ -3,31 +3,31 @@
 export const LOCATIONS = [
   {
     id: 1,
-    name: "Giza Pyramid Complex",
-    country: "Egypt",
-    lat: 29.9792,
-    lng: 31.1342,
-    imageUrl: "https://images.unsplash.com/photo-1503177119275-0aa32b31d458?q=80&w=2000&auto=format&fit=crop",
+    name: "Eiffel Tower",
+    country: "France",
+    lat: 48.8584,
+    lng: 2.2945,
+    imageUrl: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "Located in the Sahara Desert, this region sits in North Africa.",
-      "The country's capital is Cairo, and the official language is Arabic.",
-      "This complex includes the Great Sphinx and three major pyramids built during the Old Kingdom."
+      "Located in Western Europe, in the capital city on the Seine River.",
+      "Constructed as the entrance arch for the 1889 World's Fair.",
+      "Locals nickname this massive iron lattice tower 'La Dame de Fer' (The Iron Lady)."
     ],
-    description: "The Giza Pyramid Complex includes the Great Pyramid of Giza, the Pyramid of Khafre, and the Pyramid of Menkaure, along with their associated pyramid complexes and the Great Sphinx of Giza. All were built during the Fourth Dynasty of the Old Kingdom of Ancient Egypt."
+    description: "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889."
   },
   {
     id: 2,
-    name: "The Colosseum",
-    country: "Italy",
-    lat: 41.8902,
-    lng: 12.4922,
-    imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=2000&auto=format&fit=crop",
+    name: "Statue of Liberty",
+    country: "United States",
+    lat: 40.6892,
+    lng: -74.0445,
+    imageUrl: "https://images.unsplash.com/photo-1524008279394-3aed4643b30b?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "Located in Southern Europe, in the capital city of this boot-shaped peninsula.",
-      "Built of travertine, tuff, and brick-faced concrete under the Flavian dynasty.",
-      "It is the largest ancient amphitheatre ever built, famous for gladiatorial contests."
+      "Located on Liberty Island in New York Harbor.",
+      "A copper statue gifted by the people of France to the United States.",
+      "The figure represents Libertas, the Roman goddess of liberty, holding a torch."
     ],
-    description: "The Colosseum is an oval amphitheatre in the centre of the city of Rome, Italy, just east of the Roman Forum. It is the largest ancient amphitheatre ever built, and is still the largest standing amphitheatre in the world today, constructed under Emperor Vespasian."
+    description: "The Statue of Liberty is a colossal neoclassical sculpture on Liberty Island in New York Harbor in New York City, in the United States. The copper statue, a gift from the people of France, was designed by French sculptor Frédéric-Auguste Bartholdi."
   },
   {
     id: 3,
@@ -45,48 +45,76 @@ export const LOCATIONS = [
   },
   {
     id: 4,
-    name: "The Treasury at Petra",
-    country: "Jordan",
-    lat: 30.3285,
-    lng: 35.4444,
-    imageUrl: "https://images.unsplash.com/photo-1501232060322-aa873e6ca528?q=80&w=2000&auto=format&fit=crop",
+    name: "Giza Pyramid Complex",
+    country: "Egypt",
+    lat: 29.9792,
+    lng: 31.1342,
+    imageUrl: "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "Located in the Middle East, carved directly into red sandstone cliffs.",
-      "It served as the capital of the Nabataean Kingdom around the 4th century BC.",
-      "Known as the 'Rose City' due to the color of the stone from which it is carved."
+      "Located in the Sahara Desert, this region sits in North Africa.",
+      "The country's capital is Cairo, and the official language is Arabic.",
+      "This complex includes the Great Sphinx and three major pyramids built during the Old Kingdom."
     ],
-    description: "Petra is a famous archaeological site in Jordan's southwestern desert. Dating to around 300 B.C., it was the capital of the Nabataean Kingdom. Carved directly into vibrant red, white, and pink sandstone cliff faces, it is one of the New Seven Wonders of the World."
+    description: "The Giza Pyramid Complex includes the Great Pyramid of Giza, the Pyramid of Khafre, and the Pyramid of Menkaure, along with their associated pyramid complexes and the Great Sphinx of Giza. All were built during the Fourth Dynasty of the Old Kingdom of Ancient Egypt."
   },
   {
     id: 5,
-    name: "Machu Picchu",
-    country: "Peru",
-    lat: -13.1631,
-    lng: -72.5450,
-    imageUrl: "https://images.unsplash.com/photo-1508873696983-2df519f0397e?q=80&w=2000&auto=format&fit=crop",
+    name: "The Colosseum",
+    country: "Italy",
+    lat: 41.8902,
+    lng: 12.4922,
+    imageUrl: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "Set high in the Andes Mountains of South America.",
-      "Built in the 15th century and later abandoned, it is renowned for its sophisticated dry-stone walls.",
-      "It was constructed as an estate for the Inca emperor Pachacuti."
+      "Located in Southern Europe, in the capital city of this boot-shaped peninsula.",
+      "Built of travertine, tuff, and brick-faced concrete under the Flavian dynasty.",
+      "It is the largest ancient amphitheatre ever built, famous for gladiatorial contests."
     ],
-    description: "Machu Picchu is a 15th-century Inca citadel located in the Eastern Cordillera of southern Peru, on a 2,430-meter mountain ridge. It was built around 1450, abandoned a century later during the Spanish Conquest, and rediscovered in 1911."
+    description: "The Colosseum is an oval amphitheatre in the centre of the city of Rome, Italy, just east of the Roman Forum. It is the largest ancient amphitheatre ever built, and is still the largest standing amphitheatre in the world today, constructed under Emperor Vespasian."
   },
   {
     id: 6,
-    name: "Stonehenge",
-    country: "United Kingdom",
-    lat: 51.1789,
-    lng: -1.8262,
-    imageUrl: "https://images.unsplash.com/photo-1599833975787-5c143f373c30?q=80&w=2000&auto=format&fit=crop",
+    name: "Sydney Opera House",
+    country: "Australia",
+    lat: -33.8568,
+    lng: 151.2153,
+    imageUrl: "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "Located on Salisbury Plain in southwest England.",
-      "A prehistoric monument consisting of an outer ring of vertical sarsen standing stones.",
-      "Architects estimate it was constructed from 3000 BC to 2000 BC."
+      "Located on Bennelong Point in Sydney Harbour, Australia.",
+      "Designed by Danish architect Jørn Utzon, featuring distinct shell-like sails.",
+      "A multi-venue performing arts centre widely regarded as a 20th-century masterpiece."
     ],
-    description: "Stonehenge is a prehistoric monument on Salisbury Plain in Wiltshire, England, consisting of an outer ring of vertical sarsen standing stones, each around 13 feet high, topped by connecting horizontal lintel stones. It remains one of the world's most famous megalithic circles."
+    description: "The Sydney Opera House is a multi-venue performing arts centre at Sydney Harbour located in Sydney, New South Wales, Australia. It is one of the 20th century's most famous and distinctive buildings, designed by Jørn Utzon."
   },
   {
     id: 7,
+    name: "Golden Gate Bridge",
+    country: "United States",
+    lat: 37.8199,
+    lng: -122.4783,
+    imageUrl: "https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located on the West Coast of the US, spanning a 1-mile-wide strait.",
+      "Connects the city of San Francisco to Marin County.",
+      "Famous for its international orange color and elegant suspension towers."
+    ],
+    description: "The Golden Gate Bridge is a suspension bridge spanning the Golden Gate, the one-mile-wide strait connecting San Francisco Bay and the Pacific Ocean. The structure links the U.S. city of San Francisco to Marin County."
+  },
+  {
+    id: 8,
+    name: "Christ the Redeemer",
+    country: "Brazil",
+    lat: -22.9519,
+    lng: -43.2105,
+    imageUrl: "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located at the summit of Corcovado Mountain in Rio de Janeiro.",
+      "An Art Deco statue of Jesus Christ, standing 30 meters tall.",
+      "A symbol of Christianity globally, constructed between 1922 and 1931."
+    ],
+    description: "Christ the Redeemer is an Art Deco statue of Jesus Christ in Rio de Janeiro, Brazil, created by French sculptor Paul Landowski and built by Brazilian engineer Heitor da Silva Costa, in collaboration with French engineer Albert Caquot."
+  },
+  {
+    id: 9,
     name: "Great Wall of China",
     country: "China",
     lat: 40.4319,
@@ -100,7 +128,77 @@ export const LOCATIONS = [
     description: "The Great Wall of China is a series of fortifications that were built across the historical northern borders of ancient Chinese states and Imperial China as protection against nomadic groups. Stretching over 21,196 km, it is a UNESCO World Heritage site."
   },
   {
-    id: 8,
+    id: 10,
+    name: "Tower Bridge",
+    country: "United Kingdom",
+    lat: 51.5055,
+    lng: -0.0754,
+    imageUrl: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Located in London, crossing the River Thames close to the Tower of London.",
+      "A combined bascule and suspension bridge built between 1886 and 1894.",
+      "Features two massive towers constructed on piers, housing the drawbridge engines."
+    ],
+    description: "Tower Bridge is a Grade I listed combined bascule and suspension bridge in London, built between 1886 and 1894, designed by Horace Jones and engineered by John Wolfe Barry. It has become an iconic landmark of London."
+  },
+  {
+    id: 11,
+    name: "Machu Picchu",
+    country: "Peru",
+    lat: -13.1631,
+    lng: -72.5450,
+    imageUrl: "https://images.unsplash.com/photo-1508873696983-2df519f0397e?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "Set high in the Andes Mountains of South America.",
+      "Built in the 15th century and later abandoned, it is renowned for its sophisticated dry-stone walls.",
+      "It was constructed as an estate for the Inca emperor Pachacuti."
+    ],
+    description: "Machu Picchu is a 15th-century Inca citadel located in the Eastern Cordillera of southern Peru, on a 2,430-meter mountain ridge. It was built around 1450, abandoned a century later during the Spanish Conquest, and rediscovered in 1911."
+  },
+  {
+    id: 12,
+    name: "Big Ben & Westminster",
+    country: "United Kingdom",
+    lat: 51.5007,
+    lng: -0.1246,
+    imageUrl: "https://images.unsplash.com/photo-1529655683826-aba9b3e21f83?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "The nickname for the Great Bell of the striking clock at the north end of the Palace of Westminster.",
+      "Designed by Augustus Pugin in a Gothic Revival style.",
+      "The tower stands 96 meters tall and is an iconic cultural symbol of London."
+    ],
+    description: "Big Ben is the nickname for the Great Bell of the striking clock at the north end of the Palace of Westminster in London, England, and the name is frequently extended to refer also to the clock and the clock tower, now named Elizabeth Tower."
+  },
+  {
+    id: 13,
+    name: "Mount Fuji",
+    country: "Japan",
+    lat: 35.3606,
+    lng: 138.7274,
+    imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "An active stratovolcano that last erupted in 1707–1708.",
+      "The tallest peak in this East Asian island nation, rising 3,776 meters.",
+      "Commonly depicted in art, especially woodblock prints like Hokusai's Thirty-six Views."
+    ],
+    description: "Mount Fuji is the tallest mountain in Japan, standing at 3,776.24 m. It is an active stratovolcano that last erupted in 1707. Located on the island of Honshu, it is one of Japan's Three Holy Mountains."
+  },
+  {
+    id: 14,
+    name: "Leaning Tower of Pisa",
+    country: "Italy",
+    lat: 43.7230,
+    lng: 10.3966,
+    imageUrl: "https://images.unsplash.com/photo-1543012478-915c1fa58c70?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "The campanile, or freestanding bell tower, of the cathedral in this Tuscan city.",
+      "Known worldwide for its nearly four-degree lean, the result of an unstable foundation.",
+      "Construction began in 1173 and took nearly 200 years to complete due to wars."
+    ],
+    description: "The Leaning Tower of Pisa is the campanile, or freestanding bell tower, of Pisa Cathedral. It is known for its nearly four-degree lean, the result of an unstable foundation. The tower is situated behind Pisa Cathedral."
+  },
+  {
+    id: 15,
     name: "Chichen Itza",
     country: "Mexico",
     lat: 20.6843,
@@ -114,21 +212,35 @@ export const LOCATIONS = [
     description: "Chichen Itza was a large pre-Columbian city built by the Maya people. The archaeological site is located in Yucatan State, Mexico. The stepped pyramid, El Castillo, serves as a temple to the feathered serpent deity Kukulcan."
   },
   {
-    id: 9,
-    name: "Easter Island Moai",
-    country: "Chile",
-    lat: -27.1127,
-    lng: -109.3497,
-    imageUrl: "https://images.unsplash.com/photo-1510018572596-e40e2a19b412?q=80&w=2000&auto=format&fit=crop",
+    id: 16,
+    name: "Grand Canyon",
+    country: "United States",
+    lat: 36.0544,
+    lng: -112.1401,
+    imageUrl: "https://images.unsplash.com/photo-1615551043360-33de8b5f410c?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "Located on a remote volcanic island in the southeastern Pacific Ocean.",
-      "Monolithic human figures carved by the Rapa Nui people between 1250 and 1500.",
-      "Almost all moai have overly large heads, representing deified ancestors."
+      "A steep-sided canyon carved by the Colorado River in Arizona.",
+      "It is 277 miles long, up to 18 miles wide, and attains a depth of over a mile.",
+      "Exposes layered bands of red rock, revealing millions of years of geological history."
     ],
-    description: "The Moai are monolithic human figures carved by the Rapa Nui people on Easter Island in eastern Polynesia between the years 1250 and 1500. The statues are carved from volcanic tuff, representing the spirits of ancestors."
+    description: "The Grand Canyon is a steep-sided canyon carved by the Colorado River in Arizona, United States. The Grand Canyon is 277 miles long, up to 18 miles wide and attains a depth of over a mile, managed by Grand Canyon National Park."
   },
   {
-    id: 10,
+    id: 17,
+    name: "Burj Khalifa",
+    country: "United Arab Emirates",
+    lat: 25.1972,
+    lng: 55.2744,
+    imageUrl: "https://images.unsplash.com/photo-1582407947304-fd86f028f716?q=80&w=2000&auto=format&fit=crop",
+    clues: [
+      "A massive skyscraper in Downtown Dubai.",
+      "The tallest structure and building in the world since its topping out in 2009.",
+      "Features a triple-lobed footprint inspired by the Hymenocallis flower."
+    ],
+    description: "The Burj Khalifa is a skyscraper in Dubai, United Arab Emirates. With a total height of 829.8 m and a roof height of 828 m, the Burj Khalifa has been the tallest structure and building in the world since its topping out in 2009."
+  },
+  {
+    id: 18,
     name: "Acropolis of Athens",
     country: "Greece",
     lat: 37.9715,
@@ -142,144 +254,32 @@ export const LOCATIONS = [
     description: "The Acropolis of Athens is an ancient citadel located on a rocky outcrop above the city of Athens, Greece. It contains the remains of several ancient buildings of great architectural and historical significance, the Parthenon being the most complete."
   },
   {
-    id: 11,
-    name: "Angkor Wat",
-    country: "Cambodia",
-    lat: 13.4125,
-    lng: 103.8670,
-    imageUrl: "https://images.unsplash.com/photo-1600100397608-f010e42ed184?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "A temple complex in northwest country, set in Southeast Asia.",
-      "Originally constructed as a Hindu temple dedicated to Vishnu for the Khmer Empire.",
-      "It is the largest religious monument in the world, appearing on the country's national flag."
-    ],
-    description: "Angkor Wat is a temple complex in Cambodia and the largest religious monument in the world by land area, measuring 162.6 hectares. Built by the Khmer King Suryavarman II in the early 12th century, it transformed into a Buddhist site."
-  },
-  {
-    id: 12,
-    name: "Himeji Castle",
-    country: "Japan",
-    lat: 34.8394,
-    lng: 134.6939,
-    imageUrl: "https://images.unsplash.com/photo-1590559899731-a3826dc9fd55?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "A hilltop castle complex located in Hyogo Prefecture, East Asia.",
-      "Widely regarded as the finest surviving example of prototypical Japanese castle architecture.",
-      "Often called the 'White Heron Castle' (Shirasagi-jo) because of its white exterior and resemblance to a bird taking flight."
-    ],
-    description: "Himeji Castle is a hilltop Japanese castle complex situated in Himeji in Hyogo Prefecture, Japan. It is regarded as the finest surviving example of early 17th-century Japanese castle architecture, comprising 83 wooden buildings."
-  },
-  {
-    id: 13,
-    name: "Notre-Dame de Paris",
-    country: "France",
-    lat: 48.8530,
-    lng: 2.3499,
-    imageUrl: "https://images.unsplash.com/photo-1478147427282-58a87a120781?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "A medieval Catholic cathedral on the Île de la Cité in the French capital.",
-      "One of the most famous examples of French Gothic architecture, built starting in 1163.",
-      "Renowned for its stained glass rose windows, gargoyles, and flying buttresses."
-    ],
-    description: "Notre-Dame de Paris, referred to simply as Notre-Dame, is a medieval Catholic cathedral on the Île de la Cité in the 4th arrondissement of Paris, France. Constructed over two centuries starting in 1163, it represents French Gothic genius."
-  },
-  {
-    id: 14,
-    name: "Alhambra Palace",
-    country: "Spain",
-    lat: 37.1760,
-    lng: -3.5878,
-    imageUrl: "https://images.unsplash.com/photo-1595877244574-e90ce41ce089?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "A palace and fortress complex located in Granada, Andalusia.",
-      "Originally constructed as a small fortress in AD 889 and rebuilt by the Nasrid dynasty.",
-      "One of the most famous monuments of Islamic architecture, featuring highly decorated stucco walls."
-    ],
-    description: "The Alhambra is a palace and fortress complex located in Granada, Andalusia, Spain. It was constructed during the mid-13th century by the Nasrid emir Mohammed ben Al-Ahmar, representing the peak of Moorish architecture in Europe."
-  },
-  {
-    id: 15,
-    name: "Pompeii Ruins",
-    country: "Italy",
-    lat: 40.7462,
-    lng: 14.4850,
-    imageUrl: "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "An ancient Roman city located in the Campania region, near Naples.",
-      "The city was buried under 4 to 6 meters of volcanic ash during an eruption in AD 79.",
-      "Mount Vesuvius is the volcano that erupted and preserved the city in detail."
-    ],
-    description: "Pompeii was an ancient Roman city near modern Naples in the Campania region of Italy. Pompeii, along with Herculaneum and many villas in the surrounding area, was buried under volcanic ash and pumice in the eruption of Mount Vesuvius in AD 79."
-  },
-  {
-    id: 16,
-    name: "Tikal Temple I",
-    country: "Guatemala",
-    lat: 17.2220,
-    lng: -89.6234,
-    imageUrl: "https://images.unsplash.com/photo-1543872084-c7bd3822856f?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "The ruin of an ancient city in the rainforest of the Peten basin in Central America.",
-      "One of the largest archaeological sites and urban centers of the pre-Columbian Maya civilization.",
-      "Temple I is also known as the Temple of the Great Jaguar, rising 47 meters tall."
-    ],
-    description: "Tikal is the ruin of an ancient city, which was likely called Yax Mutal, found in a rainforest in Guatemala. It is one of the largest archaeological sites of the Maya civilization, dominated by Temple I, built as a funerary monument."
-  },
-  {
-    id: 17,
-    name: "Mausoleum of the Terracotta Army",
-    country: "China",
-    lat: 34.3842,
-    lng: 109.2785,
-    imageUrl: "https://images.unsplash.com/photo-1599889959407-5d8f662935d1?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "A collection of clay sculptures depicting the armies of the first Emperor of this country.",
-      "It is a form of funerary art buried with the emperor in 210 BC to protect him in the afterlife.",
-      "It was discovered in 1974 by local farmers in Shaanxi province, near Xi'an."
-    ],
-    description: "The Terracotta Army is a collection of terracotta sculptures depicting the armies of Qin Shi Huang, the first Emperor of China. It is a form of funerary art buried with the emperor in 210–209 BCE to protect him in his afterlife."
-  },
-  {
-    id: 18,
-    name: "Venice Canals",
-    country: "Italy",
-    lat: 45.4408,
-    lng: 12.3155,
-    imageUrl: "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?q=80&w=2000&auto=format&fit=crop",
-    clues: [
-      "A historical city built on a group of 118 small islands separated by canals.",
-      "It is located in the Venetian Lagoon in northeastern Italy.",
-      "Known for its gondolas, gothic palaces, and Saint Mark's Basilica."
-    ],
-    description: "Venice is a historical city built on 118 small islands in the Venetian Lagoon, northeastern Italy. It has no roads, only canals, including the Grand Canal thoroughfare, lined with Renaissance and Gothic palaces."
-  },
-  {
     id: 19,
-    name: "Red Square & Kremlin",
-    country: "Russia",
-    lat: 55.7539,
-    lng: 37.6208,
-    imageUrl: "https://images.unsplash.com/photo-1513326796677-4498336113b4?q=80&w=2000&auto=format&fit=crop",
+    name: "Louvre Pyramid",
+    country: "France",
+    lat: 48.8606,
+    lng: 2.3376,
+    imageUrl: "https://images.unsplash.com/photo-1597910037310-7cca8d3c5f6f?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "A massive brick square bordering the official residence of the President of this northern nation.",
-      "The square contains Saint Basil's Cathedral, famous for its colorful onion-shaped domes.",
-      "It separates the Kremlin from the historic merchant quarter of Moscow."
+      "A large glass and metal pyramid in the main courtyard of a landmark Paris museum.",
+      "Designed by Chinese-American architect I. M. Pei, completed in 1989.",
+      "Serves as the main entrance to the world's most-visited art museum."
     ],
-    description: "Red Square is a city square in Moscow, Russia. It separates the Kremlin, the official residence of the President of Russia, from the historic merchant quarter known as Kitai-gorod, featuring St. Basil's Cathedral."
+    description: "The Louvre Pyramid is a large glass and metal pyramid designed by Chinese-American architect I. M. Pei, surrounded by three smaller pyramids, in the main courtyard of the Palais du Louvre in Paris. It serves as the main entrance to the Louvre Museum."
   },
   {
     id: 20,
-    name: "Kyoto Yasaka Pagoda",
-    country: "Japan",
-    lat: 34.9986,
-    lng: 135.7782,
-    imageUrl: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+    name: "Stonehenge",
+    country: "United Kingdom",
+    lat: 51.1789,
+    lng: -1.8262,
+    imageUrl: "https://images.unsplash.com/photo-1599833975787-5c143f373c30?q=80&w=2000&auto=format&fit=crop",
     clues: [
-      "A 5-story wooden pagoda located in the historic Higashiyama district.",
-      "Built in 1440 by Shogun Ashikaga Yoshinori, it stands 46 meters tall.",
-      "It is the sole survivor of a former temple complex destroyed by fire."
+      "Located on Salisbury Plain in southwest England.",
+      "A prehistoric monument consisting of an outer ring of vertical sarsen standing stones.",
+      "Architects estimate it was constructed from 3000 BC to 2000 BC."
     ],
-    description: "Yasaka Pagoda, also known as Hokan-ji Temple, is a 46-meter-tall five-story wooden pagoda located in Kyoto, Japan. Built in 1440, it is one of the most iconic historical symbols of traditional Kyoto."
+    description: "Stonehenge is a prehistoric monument on Salisbury Plain in Wiltshire, England, consisting of an outer ring of vertical sarsen standing stones, each around 13 feet high, topped by connecting horizontal lintel stones. It remains one of the world's most famous megalithic circles."
   }
 ];
 

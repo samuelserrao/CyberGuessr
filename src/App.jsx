@@ -49,18 +49,51 @@ export default function App() {
         console.warn('Automatic database sync skipped:', err.message);
       });
 
-    const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
-    if (currentUserKey) {
-      const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
-      const savedUser = users[currentUserKey];
-      if (savedUser) {
-        setUserProfile(savedUser);
-        setIsLoggedIn(true);
-        if (currentUserKey.toLowerCase() === 'admin') {
-          setTab('admin');
+    // Restore session dynamically
+    const restoreSession = async () => {
+      try {
+        const profile = await api.getProfile();
+        if (profile) {
+          setUserProfile(profile);
+          setIsLoggedIn(true);
+          
+          if (profile.username.toLowerCase() === 'admin') {
+            setTab('admin');
+          }
+        } else {
+          // No profile returned from getProfile (expired token or no active session)
+          const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+          if (currentUserKey) {
+            const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+            const savedUser = users[currentUserKey];
+            if (savedUser) {
+              setUserProfile(savedUser);
+              setIsLoggedIn(true);
+              if (currentUserKey.toLowerCase() === 'admin') {
+                setTab('admin');
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Session restoration failed:', err.message);
+        // Fallback to local storage
+        const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+        if (currentUserKey) {
+          const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+          const savedUser = users[currentUserKey];
+          if (savedUser) {
+            setUserProfile(savedUser);
+            setIsLoggedIn(true);
+            if (currentUserKey.toLowerCase() === 'admin') {
+              setTab('admin');
+            }
+          }
         }
       }
-    }
+    };
+
+    restoreSession();
   }, []);
 
   // Persist user profile changes to localStorage & MongoDB backend
@@ -228,7 +261,7 @@ export default function App() {
       case 'landing':
         return <Landing setTab={setTab} startGame={handleStartGame} />;
       case 'game':
-        return <Game mode={gameMode} setTab={setTab} onAddXP={handleAddXP} />;
+        return <Game mode={gameMode} setTab={setTab} onAddXP={handleAddXP} settings={settings} />;
       case 'leaderboard':
         return <Leaderboard />;
       case 'profile':

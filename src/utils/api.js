@@ -1,4 +1,4 @@
-import { LEADERBOARD } from './mockData';
+import { LEADERBOARD, LOCATIONS } from './mockData';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3001/api'
@@ -93,6 +93,24 @@ export const api = {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Signup failed');
       localStorage.setItem('geoGuessr_token', data.token);
+
+      // Save locally as backup for offline mode
+      const users = getLocalUsers();
+      const simpleHash = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0;
+        }
+        return hash.toString(36);
+      };
+      const userKey = username.toLowerCase().trim();
+      users[userKey] = {
+        ...data.user,
+        passwordHash: simpleHash(password)
+      };
+      saveLocalUsers(users);
+
       return data.user;
     } else {
       // Local storage fallback
@@ -137,6 +155,24 @@ export const api = {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Login failed');
       localStorage.setItem('geoGuessr_token', data.token);
+
+      // Save locally as backup for offline mode
+      const users = getLocalUsers();
+      const simpleHash = (str) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0;
+        }
+        return hash.toString(36);
+      };
+      const userKey = username.toLowerCase().trim();
+      users[userKey] = {
+        ...data.user,
+        passwordHash: simpleHash(password)
+      };
+      saveLocalUsers(users);
+
       return data.user;
     } else {
       // Local storage fallback
@@ -156,6 +192,49 @@ export const api = {
 
       if (user.passwordHash !== simpleHash(password)) throw new Error('Invalid credentials: Password incorrect');
       return user;
+    }
+  },
+
+  getProfile: async () => {
+    await checkBackend();
+    if (isBackendAvailable) {
+      const token = localStorage.getItem('geoGuessr_token');
+      if (!token) return null;
+      try {
+        const res = await fetch(`${API_URL}/users/profile`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          localStorage.removeItem('geoGuessr_token');
+          return null;
+        }
+        
+        // Update local backup
+        const users = getLocalUsers();
+        const userKey = data.username.toLowerCase().trim();
+        if (users[userKey]) {
+          users[userKey] = {
+            ...users[userKey],
+            ...data
+          };
+          saveLocalUsers(users);
+        }
+        return data;
+      } catch (e) {
+        const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+        if (!currentUserKey) return null;
+        const users = getLocalUsers();
+        return users[currentUserKey] || null;
+      }
+    } else {
+      const currentUserKey = localStorage.getItem('geoGuessr_currentUser');
+      if (!currentUserKey) return null;
+      const users = getLocalUsers();
+      return users[currentUserKey] || null;
     }
   },
 
@@ -331,6 +410,75 @@ export const api = {
     } catch (err) {
       console.error('Error syncing local users to backend:', err);
       throw err;
+    }
+  },
+
+  // Location CRUD APIs
+  getLocations: async () => {
+    await checkBackend();
+    if (isBackendAvailable) {
+      try {
+        const res = await fetch(`${API_URL}/locations`, { method: 'GET' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch locations');
+        return data;
+      } catch (e) {
+        console.warn('Backend getLocations failed, falling back to local:', e);
+      }
+    }
+    // Offline local storage fallback
+    const custom = JSON.parse(localStorage.getItem('geoGuessr_customLocations') || '[]');
+    return [...LOCATIONS, ...custom];
+  },
+
+  addLocation: async (locationData) => {
+    await checkBackend();
+    if (isBackendAvailable) {
+      const token = localStorage.getItem('geoGuessr_token');
+      const res = await fetch(`${API_URL}/locations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(locationData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to create location');
+      return data;
+    } else {
+      // Local fallback
+      const custom = JSON.parse(localStorage.getItem('geoGuessr_customLocations') || '[]');
+      const newLoc = {
+        ...locationData,
+        _id: `loc_${Date.now()}`,
+        id: `loc_${Date.now()}`,
+        isCustom: true,
+        createdAt: new Date().toISOString()
+      };
+      const updated = [...custom, newLoc];
+      localStorage.setItem('geoGuessr_customLocations', JSON.stringify(updated));
+      return newLoc;
+    }
+  },
+
+  deleteLocation: async (id) => {
+    await checkBackend();
+    if (isBackendAvailable) {
+      const token = localStorage.getItem('geoGuessr_token');
+      const res = await fetch(`${API_URL}/locations/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to delete location');
+      return data;
+    } else {
+      // Local fallback
+      const custom = JSON.parse(localStorage.getItem('geoGuessr_customLocations') || '[]');
+      const filtered = custom.filter(l => l._id !== id && l.id !== id);
+      localStorage.setItem('geoGuessr_customLocations', JSON.stringify(filtered));
+      return { message: 'Location deleted locally', id };
     }
   }
 };

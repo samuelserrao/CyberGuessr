@@ -1,5 +1,28 @@
 import { useState, useRef, useEffect } from 'react';
-import { MapPin, CheckCircle, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
+import { CheckCircle, RefreshCw, Maximize2, Minimize2 } from 'lucide-react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Custom Neon Cyberpunk Marker Icons using Leaflet's divIcon
+const guessIcon = L.divIcon({
+  className: 'custom-guess-marker',
+  html: `<div class="relative flex items-center justify-center w-8 h-8 pointer-events-none">
+           <div class="absolute w-8 h-8 rounded-full bg-cyber-cyan/20 border border-cyber-cyan/40 animate-ping"></div>
+           <div class="absolute w-4 h-4 rounded-full bg-cyber-cyan border-2 border-white shadow-[0_0_12px_rgba(6,182,212,0.85)]"></div>
+         </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
+});
+
+const actualIcon = L.divIcon({
+  className: 'custom-actual-marker',
+  html: `<div class="relative flex items-center justify-center w-8 h-8 pointer-events-none">
+           <div class="absolute w-8 h-8 rounded-full bg-cyber-neonGreen/20 border border-cyber-neonGreen/40 animate-pulse"></div>
+           <div class="absolute w-4 h-4 rounded-full bg-cyber-neonGreen border-2 border-white shadow-[0_0_12px_rgba(16,185,129,0.85)]"></div>
+         </div>`,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16]
+});
 
 export default function MapPanel({ 
   onGuess, 
@@ -7,113 +30,200 @@ export default function MapPanel({
   isRoundActive, 
   actualLocation, 
   showResultMap,
-  userGuessCoord
+  userGuessCoord,
+  mapTheme
 }) {
-  const [marker, setMarker] = useState(null); // { x, y, lat, lng }
+  const [marker, setMarker] = useState(null); // { lat, lng }
   const [isExpanded, setIsExpanded] = useState(false);
-  const svgRef = useRef(null);
+  const [currentTheme, setCurrentTheme] = useState('tactical');
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const tileLayerRef = useRef(null);
+  const guessMarkerRef = useRef(null);
+  const actualMarkerRef = useRef(null);
+  const polylineRef = useRef(null);
 
-  // Reset marker when round changes
+  // Load standard or custom tile layers dynamically
+  const loadTileLayer = (themeName) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      tileLayerRef.current.remove();
+    }
+
+    let url = '';
+    let attrib = '';
+    let maxZoom = 19;
+
+    if (themeName === 'satellite') {
+      // Esri Satellite Feed
+      url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      attrib = 'Tiles &copy; Esri &mdash; Source: Esri';
+      maxZoom = 18;
+    } else if (themeName === 'outline') {
+      // CartoDB Voyager (High contrast clear pastel details)
+      url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      attrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    } else {
+      // 'tactical' - CartoDB Dark Matter
+      url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      attrib = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    }
+
+    tileLayerRef.current = L.tileLayer(url, {
+      maxZoom,
+      minZoom: 1,
+      detectRetina: true,
+      attribution: attrib
+    }).addTo(map);
+
+    setCurrentTheme(themeName);
+  };
+
+  // Initialize Leaflet Map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = L.map(mapContainerRef.current, {
+      center: [20, 0],
+      zoom: 1.2,
+      zoomControl: false,
+      attributionControl: true
+    });
+
+    mapRef.current = map;
+
+    // Load initial theme
+    loadTileLayer(mapTheme || 'tactical');
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Sync with prop mapTheme changes from Settings page
+  useEffect(() => {
+    if (mapTheme && mapTheme !== currentTheme) {
+      loadTileLayer(mapTheme);
+    }
+  }, [mapTheme]);
+
+  // Set up click handler on the Leaflet Map
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const onMapClick = (e) => {
+      if (!isRoundActive || showResultMap) return;
+
+      const { lat, lng } = e.latlng;
+      setMarker({ lat, lng });
+
+      if (guessMarkerRef.current) {
+        guessMarkerRef.current.setLatLng([lat, lng]);
+      } else {
+        guessMarkerRef.current = L.marker([lat, lng], { icon: guessIcon }).addTo(map);
+      }
+    };
+
+    map.on('click', onMapClick);
+    return () => {
+      map.off('click', onMapClick);
+    };
+  }, [isRoundActive, showResultMap]);
+
+  // Handle resizing / expanding transition to prevent gray regions
+  useEffect(() => {
+    if (mapRef.current) {
+      const timer = setTimeout(() => {
+        mapRef.current.invalidateSize();
+      }, 350); // wait for tailwind expand transition (duration-300)
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded]);
+
+  // Reset marker state when round transitions
   useEffect(() => {
     if (!showResultMap) {
       setMarker(null);
+      if (guessMarkerRef.current) {
+        guessMarkerRef.current.remove();
+        guessMarkerRef.current = null;
+      }
     }
   }, [currentRound, showResultMap]);
 
-  // Handle map click to place marker
-  const handleMapClick = (e) => {
-    if (!isRoundActive || showResultMap) return;
+  // Update map markers, polyline and bounds on showResultMap changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
 
-    const svg = svgRef.current;
-    if (!svg) return;
-
-    // Use SVG's built-in coordinate transformation matrix
-    // This correctly handles any preserveAspectRatio mode (meet, slice, etc.)
-    const ctm = svg.getScreenCTM();
-    if (!ctm) return;
-    const inverseCTM = ctm.inverse();
-
-    // Create an SVGPoint in the screen coordinate space
-    const pt = svg.createSVGPoint();
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-
-    // Transform screen coordinates to SVG viewBox coordinates natively
-    const svgPoint = pt.matrixTransform(inverseCTM);
-
-    // Clamp to viewBox bounds
-    const clampedX = Math.max(0, Math.min(1000, svgPoint.x));
-    const clampedY = Math.max(0, Math.min(500, svgPoint.y));
-
-    // Convert SVG coordinates to Lat/Lng with 18.6° E longitude split calibration
-    let rawLng = (clampedX * 360) / 1000 - 180 + 18.6;
-    if (rawLng > 180) {
-      rawLng -= 360;
+    // Clean up result-specific elements
+    if (actualMarkerRef.current) {
+      actualMarkerRef.current.remove();
+      actualMarkerRef.current = null;
     }
-    const lng = rawLng;
-    const lat = 90 - (clampedY * 180) / 500;
+    if (polylineRef.current) {
+      polylineRef.current.remove();
+      polylineRef.current = null;
+    }
 
-    console.log("Map Click Calibrated Details:", {
-      screen: { x: e.clientX, y: e.clientY },
-      viewBox: { x: clampedX, y: clampedY },
-      computed: { lat, lng }
-    });
+    if (showResultMap) {
+      const points = [];
 
-    setMarker({ x: clampedX, y: clampedY, lat, lng });
-  };
+      // Add/update player guess marker
+      const guessCoord = userGuessCoord || marker;
+      if (guessCoord && guessCoord.lat !== undefined && guessCoord.lng !== undefined) {
+        if (guessMarkerRef.current) {
+          guessMarkerRef.current.setLatLng([guessCoord.lat, guessCoord.lng]);
+        } else {
+          guessMarkerRef.current = L.marker([guessCoord.lat, guessCoord.lng], { icon: guessIcon }).addTo(map);
+        }
+        points.push([guessCoord.lat, guessCoord.lng]);
+      }
+
+      // Add actual target location marker
+      if (actualLocation && actualLocation.lat !== undefined && actualLocation.lng !== undefined) {
+        actualMarkerRef.current = L.marker([actualLocation.lat, actualLocation.lng], { icon: actualIcon }).addTo(map);
+        points.push([actualLocation.lat, actualLocation.lng]);
+      }
+
+      // Draw dashed line & fit bounds
+      if (points.length === 2) {
+        polylineRef.current = L.polyline(points, {
+          color: '#ec4899', // pink (cyber-secondary)
+          weight: 3,
+          dashArray: '6, 6',
+          className: 'animate-pulse-slow'
+        }).addTo(map);
+
+        map.fitBounds(points, { padding: [50, 50], maxZoom: 10 });
+      }
+    } else {
+      // Normal playing phase
+      if (!marker && guessMarkerRef.current) {
+        guessMarkerRef.current.remove();
+        guessMarkerRef.current = null;
+      }
+      map.setView([20, 0], 1.2);
+    }
+  }, [showResultMap, actualLocation, userGuessCoord, marker]);
 
   const handleReset = () => {
     setMarker(null);
+    if (guessMarkerRef.current) {
+      guessMarkerRef.current.remove();
+      guessMarkerRef.current = null;
+    }
   };
 
   const handleGuessSubmit = () => {
     if (!marker) return;
     onGuess(marker.lat, marker.lng);
-  };
-
-  // Convert actual coordinates to SVG x/y for drawing the result line
-  const getSvgCoords = (lat, lng) => {
-    let l = lng;
-    // Map bounds split at -161.4° longitude: wrap anything west of that to positive space
-    if (l < -161.4) {
-      l += 360;
-    }
-    const x = ((l - 18.6 + 180) * 1000) / 360;
-    const y = ((90 - lat) * 500) / 180;
-    return { x, y };
-  };
-
-  const actualCoords = actualLocation ? getSvgCoords(actualLocation.lat, actualLocation.lng) : null;
-  const guessCoords = userGuessCoord ? getSvgCoords(userGuessCoord.lat, userGuessCoord.lng) : (marker ? { x: marker.x, y: marker.y } : null);
-
-  // Draw Grid Lines helper (Latitude & Longitude)
-  const renderGridLines = () => {
-    const lines = [];
-    // Vertical longitudes (every 30 degrees)
-    for (let i = 1; i < 12; i++) {
-      const x = i * (1000 / 12);
-      lines.push(
-        <line 
-          key={`lon-${i}`} 
-          x1={x} y1={0} x2={x} y2={500} 
-          className="stroke-cyber-cyan/10" 
-          strokeDasharray="4 6" 
-        />
-      );
-    }
-    // Horizontal latitudes (every 15 degrees)
-    for (let i = 1; i < 8; i++) {
-      const y = i * (500 / 8);
-      lines.push(
-        <line 
-          key={`lat-${i}`} 
-          x1={0} y1={y} x2={1000} y2={y} 
-          className="stroke-cyber-cyan/10" 
-          strokeDasharray="4 6" 
-        />
-      );
-    }
-    return lines;
   };
 
   return (
@@ -148,117 +258,51 @@ export default function MapPanel({
         </div>
       </div>
 
-      {/* SVG Interactive Canvas */}
+      {/* Leaflet Map Interactive Container */}
       <div className="relative flex-1 overflow-hidden">
-        <svg
-          ref={svgRef}
-          onClick={handleMapClick}
-          viewBox="0 0 1000 500"
-          preserveAspectRatio="xMidYMid meet"
-          className={`w-full h-full select-none ${
-            isRoundActive && !showResultMap ? 'cursor-crosshair' : 'cursor-default'
-          }`}
-        >
-          {/* Base Ocean Background */}
-          <rect width="1000" height="500" fill="#090d16" />
+        <div ref={mapContainerRef} className="w-full h-full bg-cyber-dark z-0" />
 
-          {/* Premium Vector SVG World Map (Infinite Sharpness) */}
-          <image
-            href="/world-map.svg"
-            x="0"
-            y="0"
-            width="1000"
-            height="500"
-            preserveAspectRatio="none"
-            style={{
-              opacity: 0.65,
-              filter: 'invert(1) sepia(1) saturate(5) hue-rotate(185deg) brightness(1.2)'
-            }}
-          />
-
-          {/* Map Grid Background */}
-          {renderGridLines()}
-
-          {/* Dotted Connection Line on Result */}
-          {showResultMap && actualCoords && guessCoords && (
-            <>
-              <line
-                x1={guessCoords.x}
-                y1={guessCoords.y}
-                x2={actualCoords.x}
-                y2={actualCoords.y}
-                className="stroke-cyber-secondary animate-pulse-slow"
-                strokeWidth="2.5"
-                strokeDasharray="6 6"
-              />
-              {/* Dotted path glow */}
-              <line
-                x1={guessCoords.x}
-                y1={guessCoords.y}
-                x2={actualCoords.x}
-                y2={actualCoords.y}
-                className="stroke-cyber-secondary/30 blur-xs"
-                strokeWidth="5"
-              />
-            </>
-          )}
-
-          {/* Actual Location Marker (Only shown at round-over) */}
-          {showResultMap && actualCoords && (
-            <g className="marker-bounce">
-              <circle
-                cx={actualCoords.x}
-                cy={actualCoords.y}
-                r="16"
-                className="fill-cyber-neonGreen/10 stroke-cyber-neonGreen/40 animate-pulse"
-                strokeWidth="1"
-              />
-              <circle
-                cx={actualCoords.x}
-                cy={actualCoords.y}
-                r="7"
-                className="fill-cyber-neonGreen shadow-lg shadow-cyber-neonGreen"
-              />
-              <circle
-                cx={actualCoords.x}
-                cy={actualCoords.y}
-                r="2"
-                className="fill-white"
-              />
-            </g>
-          )}
-
-          {/* User Guess Marker */}
-          {guessCoords && (
-            <g className={!showResultMap ? 'marker-bounce' : ''}>
-              {/* Glow circle */}
-              <circle
-                cx={guessCoords.x}
-                cy={guessCoords.y}
-                r="16"
-                className="fill-cyber-cyan/15 stroke-cyber-cyan/40"
-                strokeWidth="1.5"
-              />
-              {/* Point coordinate marker */}
-              <circle
-                cx={guessCoords.x}
-                cy={guessCoords.y}
-                r="6"
-                className="fill-cyber-cyan"
-              />
-              <circle
-                cx={guessCoords.x}
-                cy={guessCoords.y}
-                r="2.2"
-                className="fill-white"
-              />
-            </g>
-          )}
-        </svg>
+        {/* Real-time floating HUD Theme Selector Control */}
+        <div className="absolute bottom-3 left-3 flex gap-1 z-[1000] bg-black/80 p-1.5 rounded-lg border border-white/10 backdrop-blur-md select-none">
+          <button
+            type="button"
+            onClick={() => loadTileLayer('tactical')}
+            className={`px-2.5 py-0.5 text-[9px] font-cyber tracking-wider rounded transition-all duration-200 ${
+              currentTheme === 'tactical' 
+                ? 'bg-cyber-cyan text-black font-bold shadow-[0_0_8px_rgba(6,182,212,0.5)]' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            DARK
+          </button>
+          <button
+            type="button"
+            onClick={() => loadTileLayer('outline')}
+            className={`px-2.5 py-0.5 text-[9px] font-cyber tracking-wider rounded transition-all duration-200 ${
+              currentTheme === 'outline' 
+                ? 'bg-cyber-cyan text-black font-bold shadow-[0_0_8px_rgba(6,182,212,0.5)]' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+            title="Detailed high contrast light map"
+          >
+            CLEAR
+          </button>
+          <button
+            type="button"
+            onClick={() => loadTileLayer('satellite')}
+            className={`px-2.5 py-0.5 text-[9px] font-cyber tracking-wider rounded transition-all duration-200 ${
+              currentTheme === 'satellite' 
+                ? 'bg-cyber-cyan text-black font-bold shadow-[0_0_8px_rgba(6,182,212,0.5)]' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            SATELLITE
+          </button>
+        </div>
 
         {/* Legend Overlay for Result view */}
         {showResultMap && (
-          <div className="absolute top-3 left-3 bg-black/75 border border-white/10 p-2.5 rounded-lg text-[10px] font-cyber flex flex-col gap-1.5 pointer-events-none backdrop-blur-md">
+          <div className="absolute top-3 left-3 bg-black/75 border border-white/10 p-2.5 rounded-lg text-[10px] font-cyber flex flex-col gap-1.5 pointer-events-none backdrop-blur-md z-[1000]">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-cyber-cyan" />
               <span className="text-gray-300">YOUR GUESS</span>
@@ -273,7 +317,7 @@ export default function MapPanel({
 
       {/* Map Action Buttons */}
       {!showResultMap && (
-        <div className="flex border-t border-white/5 bg-black/20 p-3 items-center justify-between gap-3">
+        <div className="flex border-t border-white/5 bg-black/20 p-3 items-center justify-between gap-3 z-[1000]">
           <button
             onClick={handleReset}
             disabled={!marker || !isRoundActive}
