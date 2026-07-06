@@ -74,8 +74,34 @@ setInterval(async () => {
 }, 10000);
 
 // Helper to get local storage users list
-const getLocalUsers = () => JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+const getLocalUsers = () => {
+  const users = JSON.parse(localStorage.getItem('geoGuessr_users') || '{}');
+  if (!users['admin']) {
+    const simpleHash = (str) => {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return hash.toString(36);
+    };
+    users['admin'] = {
+      username: 'admin',
+      passwordHash: simpleHash('admin'),
+      profilePic: null,
+      level: 99,
+      xp: 0,
+      xpNext: 10000,
+      stats: { gamesPlayed: 0, wins: 0, avgDistance: 0, bestScore: 25000 },
+      matchHistory: [],
+      createdAt: new Date().toISOString()
+    };
+    localStorage.setItem('geoGuessr_users', JSON.stringify(users));
+  }
+  return users;
+};
 const saveLocalUsers = (users) => localStorage.setItem('geoGuessr_users', JSON.stringify(users));
+
 
 export const api = {
   isAvailable: () => isBackendAvailable,
