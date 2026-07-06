@@ -736,7 +736,19 @@ app.delete('/api/locations/:id', authenticateToken, async (req, res) => {
   }
 });
 
+
+// Health check endpoint to verify database connection status without triggering a query timeout
+app.get('/api/health', (req, res) => {
+  const readyState = mongoose.connection.readyState;
+  if (readyState === 1) {
+    res.json({ status: 'ok', database: 'connected' });
+  } else {
+    res.status(503).json({ status: 'down', database: 'disconnected', readyState });
+  }
+});
+
 // --- GLOBAL LEADERBOARDS ROUTING ---
+
 
 app.get('/api/leaderboard', async (req, res) => {
   try {

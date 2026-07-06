@@ -22,7 +22,7 @@ async function checkBackend() {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 1200); // 1.2s timeout max
-      const res = await fetch(`${API_URL}/leaderboard`, { 
+      const res = await fetch(`${API_URL}/health`, { 
         method: 'GET',
         signal: controller.signal
       });
@@ -48,7 +48,7 @@ setInterval(async () => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(`${API_URL}/leaderboard`, { 
+    const res = await fetch(`${API_URL}/health`, { 
       method: 'GET',
       signal: controller.signal
     });
